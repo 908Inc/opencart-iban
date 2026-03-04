@@ -22,28 +22,44 @@
           <div class="row mb-3">
             <label for="input-iban" class="col-sm-2 col-form-label">{{ entry_iban }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_iban" value="{{ payment_opencart_iban_iban }}" placeholder="{{ entry_iban }}" id="input-iban" class="form-control" required/>
+              <input type="text" name="payment_opencart_iban_iban" value="{{ payment_opencart_iban_iban|e }}" placeholder="{{ entry_iban }}" id="input-iban" class="form-control" required/>
               <div id="error-iban" class="invalid-feedback"></div>
             </div>
           </div>
           <div class="row mb-3">
             <label for="input-code" class="col-sm-2 col-form-label">{{ entry_code }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_code" value="{{ payment_opencart_iban_code }}" placeholder="{{ entry_code }}" id="input-code" class="form-control" required/>
+              <input type="text" name="payment_opencart_iban_code" value="{{ payment_opencart_iban_code|e }}" placeholder="{{ entry_code }}" id="input-code" class="form-control" required/>
               <div id="error-code" class="invalid-feedback"></div>
             </div>
           </div>
-          {% for language in languages %}
-            <div class="row mb-3">
-              <label for="input-purpose-{{ language.language_id }}" class="col-sm-2 col-form-label">{{ entry_purpose }}</label>
-              <div class="col-sm-10">
-                <div class="input-group">
-                  <span class="input-group-text"><img src="{{ language.image }}" title="{{ language.name }}"/></span>
-                  <input type="text" name="payment_opencart_iban_purpose_{{ language.language_id }}" value="{{ payment_opencart_iban_purpose[language.language_id] ? payment_opencart_iban_purpose[language.language_id] }}" placeholder="{{ entry_purpose }}" id="input-purpose-{{ language.language_id }}" class="form-control"/>
-                </div>
-                <div class="form-text">{{ help_purpose }}</div>
-              </div>
+          <div class="row mb-3">
+            <label for="input-client-key" class="col-sm-2 col-form-label">{{ entry_client_key }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_opencart_iban_client_key" value="{{ payment_opencart_iban_client_key|e }}" placeholder="{{ entry_client_key }}" id="input-client-key" class="form-control" required/>
+              <div id="error-client-key" class="invalid-feedback"></div>
+              <div class="form-text">{{ help_client_key }}</div>
             </div>
+          </div>
+          <div class="row mb-3">
+            <label for="input-client-name" class="col-sm-2 col-form-label">{{ entry_client_name }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_opencart_iban_client_name" value="{{ payment_opencart_iban_client_name|e }}" placeholder="{{ entry_client_name }}" id="input-client-name" class="form-control" required/>
+              <div id="error-client-name" class="invalid-feedback"></div>
+              <div class="form-text">{{ help_client_name }}</div>
+            </div>
+          </div>
+          {% for language in languages %}
+          <div class="row mb-3">
+            <label for="input-purpose-{{ language.language_id }}" class="col-sm-2 col-form-label">{{ entry_purpose }}</label>
+            <div class="col-sm-10">
+              <div class="input-group">
+                <span class="input-group-text"><img src="{{ language.image }}" title="{{ language.name }}"/></span>
+                <input type="text" name="payment_opencart_iban_purpose_{{ language.language_id }}" value="{{ (payment_opencart_iban_purpose[language.language_id] ?? '')|e }}" placeholder="{{ entry_purpose }}" id="input-purpose-{{ language.language_id }}" class="form-control"/>
+              </div>
+              <div class="form-text">{{ help_purpose }}</div>
+            </div>
+          </div>
           {% endfor %}
           <div class="row mb-3">
             <label for="input-order-status" class="col-sm-2 col-form-label">{{ entry_order_status }}</label>
@@ -67,7 +83,7 @@
           <div class="row mb-3">
             <label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_sort_order" value="{{ payment_opencart_iban_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
+              <input type="text" name="payment_opencart_iban_sort_order" value="{{ payment_opencart_iban_sort_order|e }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
             </div>
           </div>
         </form>

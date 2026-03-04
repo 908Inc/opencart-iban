@@ -14,8 +14,8 @@ Creates an IBAN invoice via Opendatabot and redirects the customer to the invoic
 - Admin settings:
   - IBAN
   - Code (RNOKPPP/EDRPOU)
-  - API key (x-client-key) **(OpenCart 3.x only, required)**
-  - Client name (x-client-name) **(OpenCart 3.x only, required)**
+  - API key (x-client-key)
+  - Client name (x-client-name)
   - Payment purpose template (supports `{order_id}`)
   - Order Status (when redirecting)
   - Enable/Disable + Sort order
@@ -48,6 +48,8 @@ Upload/install:
 4) **Edit** and set:
    - `IBAN`
    - `Code (RNOKPPP/EDRPOU)`
+   - `API key` (x-client-key)
+   - `Client name` (x-client-name)
    - `Payment purpose` (optional; supports `{order_id}`)
    - `Order Status` (recommended: Pending / Awaiting payment)
    - `Status` = Enabled
