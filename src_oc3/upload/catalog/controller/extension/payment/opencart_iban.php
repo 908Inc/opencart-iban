@@ -2,8 +2,6 @@
 class ControllerExtensionPaymentOpencartIban extends Controller {
 	private const OPENDATABOT_ENDPOINT = 'https://iban.opendatabot.ua/api/invoice';
 	private const OPENDATABOT_INVOICE_URL_PREFIX = 'https://iban.opendatabot.ua/invoice/';
-	private const OPENDATABOT_CLIENT_KEY = 'KUI8gwVJb3OQN1LuTKEsBx8feSYOJK2m';
-	private const OPENDATABOT_CLIENT_NAME = 'public';
 
 	public function index() {
 		$this->load->language('extension/payment/opencart_iban');
@@ -29,8 +27,10 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 		$iban = preg_replace('/\\s+/', '', (string)$this->config->get('payment_opencart_iban_iban'));
 		$code = preg_replace('/\\s+/', '', (string)$this->config->get('payment_opencart_iban_code'));
+		$client_key = trim((string)$this->config->get('payment_opencart_iban_client_key'));
+		$client_name = trim((string)$this->config->get('payment_opencart_iban_client_name'));
 
-		if ($iban === '' || $code === '') {
+		if ($iban === '' || $code === '' || $client_key === '' || $client_name === '') {
 			$json['error'] = $this->language->get('error_config');
 		}
 
@@ -78,8 +78,8 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 				'iban' => $iban,
 				'amount' => $amount,
 				'purpose' => $purpose,
-				'x-client-key' => self::OPENDATABOT_CLIENT_KEY,
-				'x-client-name' => self::OPENDATABOT_CLIENT_NAME
+				'x-client-key' => $client_key,
+				'x-client-name' => $client_name
 			);
 
 			$invoice_id = $this->createInvoice($payload);

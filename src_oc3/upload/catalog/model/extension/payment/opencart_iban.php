@@ -7,8 +7,10 @@ class ModelExtensionPaymentOpencartIban extends Model {
 
 		$iban = preg_replace('/\\s+/', '', (string)$this->config->get('payment_opencart_iban_iban'));
 		$code = preg_replace('/\\s+/', '', (string)$this->config->get('payment_opencart_iban_code'));
+		$client_key = trim((string)$this->config->get('payment_opencart_iban_client_key'));
+		$client_name = trim((string)$this->config->get('payment_opencart_iban_client_name'));
 
-		if ($iban === '' || $code === '') {
+		if ($iban === '' || $code === '' || $client_key === '' || $client_name === '') {
 			$status = false;
 		}
 

@@ -40,9 +40,13 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 		$data['error_warning'] = isset($this->error['warning']) ? $this->error['warning'] : '';
 		$data['error_iban'] = isset($this->error['iban']) ? $this->error['iban'] : '';
 		$data['error_code'] = isset($this->error['code']) ? $this->error['code'] : '';
+		$data['error_client_key'] = isset($this->error['client_key']) ? $this->error['client_key'] : '';
+		$data['error_client_name'] = isset($this->error['client_name']) ? $this->error['client_name'] : '';
 
 		$data['payment_opencart_iban_iban'] = isset($this->request->post['payment_opencart_iban_iban']) ? $this->request->post['payment_opencart_iban_iban'] : $this->config->get('payment_opencart_iban_iban');
 		$data['payment_opencart_iban_code'] = isset($this->request->post['payment_opencart_iban_code']) ? $this->request->post['payment_opencart_iban_code'] : $this->config->get('payment_opencart_iban_code');
+		$data['payment_opencart_iban_client_key'] = isset($this->request->post['payment_opencart_iban_client_key']) ? $this->request->post['payment_opencart_iban_client_key'] : $this->config->get('payment_opencart_iban_client_key');
+		$data['payment_opencart_iban_client_name'] = isset($this->request->post['payment_opencart_iban_client_name']) ? $this->request->post['payment_opencart_iban_client_name'] : $this->config->get('payment_opencart_iban_client_name');
 
 		// Purpose templates (per language)
 		$this->load->model('localisation/language');
@@ -110,15 +114,22 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		if (empty($this->request->post['payment_opencart_iban_iban'])) {
+		if (!isset($this->request->post['payment_opencart_iban_iban']) || trim($this->request->post['payment_opencart_iban_iban']) === '') {
 			$this->error['iban'] = $this->language->get('error_iban');
 		}
 
-		if (empty($this->request->post['payment_opencart_iban_code'])) {
+		if (!isset($this->request->post['payment_opencart_iban_code']) || trim($this->request->post['payment_opencart_iban_code']) === '') {
 			$this->error['code'] = $this->language->get('error_code');
+		}
+
+		if (!isset($this->request->post['payment_opencart_iban_client_key']) || trim($this->request->post['payment_opencart_iban_client_key']) === '') {
+			$this->error['client_key'] = $this->language->get('error_client_key');
+		}
+
+		if (!isset($this->request->post['payment_opencart_iban_client_name']) || trim($this->request->post['payment_opencart_iban_client_name']) === '') {
+			$this->error['client_name'] = $this->language->get('error_client_name');
 		}
 
 		return !$this->error;
 	}
 }
-

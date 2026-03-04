@@ -46,6 +46,28 @@
             </div>
           </div>
 
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-client-key">{{ entry_client_key }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_opencart_iban_client_key" value="{{ payment_opencart_iban_client_key }}" placeholder="{{ entry_client_key }}" id="input-client-key" class="form-control" />
+              {% if error_client_key %}
+                <div class="text-danger">{{ error_client_key }}</div>
+              {% endif %}
+              <p class="help-block">{{ help_client_key }}</p>
+            </div>
+          </div>
+
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-client-name">{{ entry_client_name }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_opencart_iban_client_name" value="{{ payment_opencart_iban_client_name }}" placeholder="{{ entry_client_name }}" id="input-client-name" class="form-control" />
+              {% if error_client_name %}
+                <div class="text-danger">{{ error_client_name }}</div>
+              {% endif %}
+              <p class="help-block">{{ help_client_name }}</p>
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="col-sm-2 control-label">{{ entry_purpose }}</label>
             <div class="col-sm-10">
@@ -110,4 +132,3 @@
   </div>
 </div>
 {{ footer }}
-
