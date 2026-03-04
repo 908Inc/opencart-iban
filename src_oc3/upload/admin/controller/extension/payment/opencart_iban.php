@@ -116,20 +116,69 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 		if (!isset($this->request->post['payment_opencart_iban_iban']) || trim($this->request->post['payment_opencart_iban_iban']) === '') {
 			$this->error['iban'] = $this->language->get('error_iban');
+		} else {
+			$iban = strtoupper(preg_replace('/\\s+/', '', (string)$this->request->post['payment_opencart_iban_iban']));
+			$this->request->post['payment_opencart_iban_iban'] = $iban;
+
+			if (!preg_match('/^UA\\d{27}$/', $iban)) {
+				$this->error['iban'] = $this->language->get('error_iban_format');
+			} elseif ($this->ibanMod97($iban) !== 1) {
+				$this->error['iban'] = $this->language->get('error_iban_checksum');
+			}
 		}
 
 		if (!isset($this->request->post['payment_opencart_iban_code']) || trim($this->request->post['payment_opencart_iban_code']) === '') {
 			$this->error['code'] = $this->language->get('error_code');
+		} else {
+			$code = preg_replace('/\\s+/', '', (string)$this->request->post['payment_opencart_iban_code']);
+			$this->request->post['payment_opencart_iban_code'] = $code;
+
+			$length = strlen($code);
+
+			if (!ctype_digit($code) || ($length !== 8 && $length !== 10)) {
+				$this->error['code'] = $this->language->get('error_code_format');
+			}
 		}
 
 		if (!isset($this->request->post['payment_opencart_iban_client_key']) || trim($this->request->post['payment_opencart_iban_client_key']) === '') {
 			$this->error['client_key'] = $this->language->get('error_client_key');
+		} else {
+			$this->request->post['payment_opencart_iban_client_key'] = trim((string)$this->request->post['payment_opencart_iban_client_key']);
 		}
 
 		if (!isset($this->request->post['payment_opencart_iban_client_name']) || trim($this->request->post['payment_opencart_iban_client_name']) === '') {
 			$this->error['client_name'] = $this->language->get('error_client_name');
+		} else {
+			$this->request->post['payment_opencart_iban_client_name'] = trim((string)$this->request->post['payment_opencart_iban_client_name']);
 		}
 
 		return !$this->error;
+	}
+
+	private function ibanMod97($iban) {
+		$iban = strtoupper((string)$iban);
+		$rearranged = substr($iban, 4) . substr($iban, 0, 4);
+
+		$numeric = '';
+		$rearranged_length = strlen($rearranged);
+
+		for ($i = 0; $i < $rearranged_length; $i++) {
+			$char = $rearranged[$i];
+
+			if ($char >= 'A' && $char <= 'Z') {
+				$numeric .= (string)(ord($char) - 55);
+			} else {
+				$numeric .= $char;
+			}
+		}
+
+		$remainder = 0;
+		$numeric_length = strlen($numeric);
+
+		for ($i = 0; $i < $numeric_length; $i++) {
+			$remainder = ($remainder * 10 + (int)$numeric[$i]) % 97;
+		}
+
+		return $remainder;
 	}
 }

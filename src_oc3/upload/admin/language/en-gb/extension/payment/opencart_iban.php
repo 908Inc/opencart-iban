@@ -23,6 +23,9 @@ $_['entry_sort_order'] = 'Sort Order';
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify this payment method!';
 $_['error_iban'] = 'IBAN is required!';
+$_['error_iban_format'] = 'Please enter a valid UA IBAN (UA + 27 digits).';
+$_['error_iban_checksum'] = 'Please enter a valid IBAN (checksum is invalid).';
 $_['error_code'] = 'Company code is required!';
+$_['error_code_format'] = 'Please enter a valid code (8 or 10 digits).';
 $_['error_client_key'] = 'API key is required!';
 $_['error_client_name'] = 'Client name is required!';
