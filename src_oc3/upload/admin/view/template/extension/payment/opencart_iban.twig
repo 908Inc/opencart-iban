@@ -29,7 +29,7 @@
           <div class="form-group required">
             <label class="col-sm-2 control-label" for="input-iban">{{ entry_iban }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_iban" value="{{ payment_opencart_iban_iban }}" placeholder="{{ entry_iban }}" id="input-iban" class="form-control" />
+              <input type="text" name="payment_opencart_iban_iban" value="{{ payment_opencart_iban_iban|e }}" placeholder="{{ entry_iban }}" id="input-iban" class="form-control" />
               {% if error_iban %}
                 <div class="text-danger">{{ error_iban }}</div>
               {% endif %}
@@ -39,10 +39,32 @@
           <div class="form-group required">
             <label class="col-sm-2 control-label" for="input-code">{{ entry_code }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_code" value="{{ payment_opencart_iban_code }}" placeholder="{{ entry_code }}" id="input-code" class="form-control" />
+              <input type="text" name="payment_opencart_iban_code" value="{{ payment_opencart_iban_code|e }}" placeholder="{{ entry_code }}" id="input-code" class="form-control" />
               {% if error_code %}
                 <div class="text-danger">{{ error_code }}</div>
               {% endif %}
+            </div>
+          </div>
+
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-client-key">{{ entry_client_key }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_opencart_iban_client_key" value="{{ payment_opencart_iban_client_key|e }}" placeholder="{{ entry_client_key }}" id="input-client-key" class="form-control" />
+              {% if error_client_key %}
+                <div class="text-danger">{{ error_client_key }}</div>
+              {% endif %}
+              <p class="help-block">{{ help_client_key }}</p>
+            </div>
+          </div>
+
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-client-name">{{ entry_client_name }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="payment_opencart_iban_client_name" value="{{ payment_opencart_iban_client_name|e }}" placeholder="{{ entry_client_name }}" id="input-client-name" class="form-control" />
+              {% if error_client_name %}
+                <div class="text-danger">{{ error_client_name }}</div>
+              {% endif %}
+              <p class="help-block">{{ help_client_name }}</p>
             </div>
           </div>
 
@@ -57,7 +79,7 @@
                   <input
                     type="text"
                     name="payment_opencart_iban_purpose_{{ language.language_id }}"
-                    value="{{ payment_opencart_iban_purpose[language.language_id] }}"
+                    value="{{ payment_opencart_iban_purpose[language.language_id]|e }}"
                     placeholder="{{ entry_purpose }}"
                     id="input-purpose-{{ language.language_id }}"
                     class="form-control"
@@ -110,4 +132,3 @@
   </div>
 </div>
 {{ footer }}
-

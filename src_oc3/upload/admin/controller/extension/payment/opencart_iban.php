@@ -40,9 +40,13 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 		$data['error_warning'] = isset($this->error['warning']) ? $this->error['warning'] : '';
 		$data['error_iban'] = isset($this->error['iban']) ? $this->error['iban'] : '';
 		$data['error_code'] = isset($this->error['code']) ? $this->error['code'] : '';
+		$data['error_client_key'] = isset($this->error['client_key']) ? $this->error['client_key'] : '';
+		$data['error_client_name'] = isset($this->error['client_name']) ? $this->error['client_name'] : '';
 
 		$data['payment_opencart_iban_iban'] = isset($this->request->post['payment_opencart_iban_iban']) ? $this->request->post['payment_opencart_iban_iban'] : $this->config->get('payment_opencart_iban_iban');
 		$data['payment_opencart_iban_code'] = isset($this->request->post['payment_opencart_iban_code']) ? $this->request->post['payment_opencart_iban_code'] : $this->config->get('payment_opencart_iban_code');
+		$data['payment_opencart_iban_client_key'] = isset($this->request->post['payment_opencart_iban_client_key']) ? $this->request->post['payment_opencart_iban_client_key'] : $this->config->get('payment_opencart_iban_client_key');
+		$data['payment_opencart_iban_client_name'] = isset($this->request->post['payment_opencart_iban_client_name']) ? $this->request->post['payment_opencart_iban_client_name'] : $this->config->get('payment_opencart_iban_client_name');
 
 		// Purpose templates (per language)
 		$this->load->model('localisation/language');
@@ -110,15 +114,71 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
-		if (empty($this->request->post['payment_opencart_iban_iban'])) {
+		if (!isset($this->request->post['payment_opencart_iban_iban']) || trim($this->request->post['payment_opencart_iban_iban']) === '') {
 			$this->error['iban'] = $this->language->get('error_iban');
+		} else {
+			$iban = strtoupper(preg_replace('/\\s+/', '', (string)$this->request->post['payment_opencart_iban_iban']));
+			$this->request->post['payment_opencart_iban_iban'] = $iban;
+
+			if (!preg_match('/^UA\\d{27}$/', $iban)) {
+				$this->error['iban'] = $this->language->get('error_iban_format');
+			} elseif ($this->ibanMod97($iban) !== 1) {
+				$this->error['iban'] = $this->language->get('error_iban_checksum');
+			}
 		}
 
-		if (empty($this->request->post['payment_opencart_iban_code'])) {
+		if (!isset($this->request->post['payment_opencart_iban_code']) || trim($this->request->post['payment_opencart_iban_code']) === '') {
 			$this->error['code'] = $this->language->get('error_code');
+		} else {
+			$code = preg_replace('/\\s+/', '', (string)$this->request->post['payment_opencart_iban_code']);
+			$this->request->post['payment_opencart_iban_code'] = $code;
+
+			$length = strlen($code);
+
+			if (!ctype_digit($code) || ($length !== 8 && $length !== 10)) {
+				$this->error['code'] = $this->language->get('error_code_format');
+			}
+		}
+
+		if (!isset($this->request->post['payment_opencart_iban_client_key']) || trim($this->request->post['payment_opencart_iban_client_key']) === '') {
+			$this->error['client_key'] = $this->language->get('error_client_key');
+		} else {
+			$this->request->post['payment_opencart_iban_client_key'] = trim((string)$this->request->post['payment_opencart_iban_client_key']);
+		}
+
+		if (!isset($this->request->post['payment_opencart_iban_client_name']) || trim($this->request->post['payment_opencart_iban_client_name']) === '') {
+			$this->error['client_name'] = $this->language->get('error_client_name');
+		} else {
+			$this->request->post['payment_opencart_iban_client_name'] = trim((string)$this->request->post['payment_opencart_iban_client_name']);
 		}
 
 		return !$this->error;
 	}
-}
 
+	private function ibanMod97($iban) {
+		$iban = strtoupper((string)$iban);
+		$rearranged = substr($iban, 4) . substr($iban, 0, 4);
+
+		$numeric = '';
+		$rearranged_length = strlen($rearranged);
+
+		for ($i = 0; $i < $rearranged_length; $i++) {
+			$char = $rearranged[$i];
+
+			if ($char >= 'A' && $char <= 'Z') {
+				$numeric .= (string)(ord($char) - 55);
+			} else {
+				$numeric .= $char;
+			}
+		}
+
+		$remainder = 0;
+		$numeric_length = strlen($numeric);
+
+		for ($i = 0; $i < $numeric_length; $i++) {
+			$remainder = ($remainder * 10 + (int)$numeric[$i]) % 97;
+		}
+
+		return $remainder;
+	}
+}

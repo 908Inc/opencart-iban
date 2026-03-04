@@ -12,7 +12,7 @@ $_['text_purpose'] = 'Payment for order #%s';
 
 // Error
 $_['error_currency'] = 'This payment method is available only for UAH.';
-$_['error_config'] = 'Payment method is not configured (IBAN/company code missing).';
+$_['error_config'] = 'Payment method is not configured (missing IBAN, company code, API key or client name).';
+$_['error_invoice'] = 'Unable to create invoice. Please try again later.';
 $_['error_order'] = 'Order not found.';
 $_['error_payment_method'] = 'Please choose the IBAN invoice payment method again.';
-
