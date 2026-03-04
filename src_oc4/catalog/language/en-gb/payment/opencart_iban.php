@@ -15,5 +15,6 @@ $_['button_continue']      = 'Return to checkout';
 // Error
 $_['error_order']          = 'Order not found. Please try again.';
 $_['error_payment_method'] = 'Payment method was changed. Please try again.';
-$_['error_config']         = 'Payment method is not configured.';
+$_['error_config']         = 'Payment method is not configured (missing IBAN, company code, API key or client name).';
 $_['error_currency']       = 'This payment method is available only for UAH.';
+$_['error_invoice']        = 'Unable to create invoice. Please try again later.';

@@ -21,6 +21,8 @@ class OpencartIban extends \Opencart\System\Engine\Model {
 
 		$iban = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_iban'));
 		$code = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_code'));
+		$client_key = trim((string)$this->config->get('payment_opencart_iban_client_key'));
+		$client_name = trim((string)$this->config->get('payment_opencart_iban_client_name'));
 
 		$currency = $this->session->data['currency'] ?? $this->config->get('config_currency');
 
@@ -30,7 +32,7 @@ class OpencartIban extends \Opencart\System\Engine\Model {
 			$status = false;
 		}
 
-		if ($iban === '' || $code === '') {
+		if ($iban === '' || $code === '' || $client_key === '' || $client_name === '') {
 			$status = false;
 		}
 
@@ -57,4 +59,3 @@ class OpencartIban extends \Opencart\System\Engine\Model {
 		return $method_data;
 	}
 }
-

@@ -109,6 +109,8 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 
 		$data['payment_opencart_iban_iban'] = (string)$this->config->get('payment_opencart_iban_iban');
 		$data['payment_opencart_iban_code'] = (string)$this->config->get('payment_opencart_iban_code');
+		$data['payment_opencart_iban_client_key'] = (string)$this->config->get('payment_opencart_iban_client_key');
+		$data['payment_opencart_iban_client_name'] = (string)$this->config->get('payment_opencart_iban_client_name');
 
 		// Purpose (multi-language)
 		$this->load->model('localisation/language');
@@ -167,12 +169,55 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		}
 
-		if (empty($this->request->post['payment_opencart_iban_iban'])) {
+		$iban = isset($this->request->post['payment_opencart_iban_iban'])
+			? strtoupper(preg_replace('/\s+/', '', (string)$this->request->post['payment_opencart_iban_iban']))
+			: '';
+
+		if ($iban === '') {
 			$json['error']['iban'] = $this->language->get('error_iban');
+		} else {
+			$this->request->post['payment_opencart_iban_iban'] = $iban;
+
+			if (!preg_match('/^UA\d{27}$/', $iban)) {
+				$json['error']['iban'] = $this->language->get('error_iban_format');
+			} elseif ($this->ibanMod97($iban) !== 1) {
+				$json['error']['iban'] = $this->language->get('error_iban_checksum');
+			}
 		}
 
-		if (empty($this->request->post['payment_opencart_iban_code'])) {
+		$code = isset($this->request->post['payment_opencart_iban_code'])
+			? preg_replace('/\s+/', '', (string)$this->request->post['payment_opencart_iban_code'])
+			: '';
+
+		if ($code === '') {
 			$json['error']['code'] = $this->language->get('error_code');
+		} else {
+			$this->request->post['payment_opencart_iban_code'] = $code;
+			$length = strlen($code);
+
+			if (!ctype_digit($code) || ($length !== 8 && $length !== 10)) {
+				$json['error']['code'] = $this->language->get('error_code_format');
+			}
+		}
+
+		$client_key = isset($this->request->post['payment_opencart_iban_client_key'])
+			? trim((string)$this->request->post['payment_opencart_iban_client_key'])
+			: '';
+
+		if ($client_key === '') {
+			$json['error']['client_key'] = $this->language->get('error_client_key');
+		} else {
+			$this->request->post['payment_opencart_iban_client_key'] = $client_key;
+		}
+
+		$client_name = isset($this->request->post['payment_opencart_iban_client_name'])
+			? trim((string)$this->request->post['payment_opencart_iban_client_name'])
+			: '';
+
+		if ($client_name === '') {
+			$json['error']['client_name'] = $this->language->get('error_client_name');
+		} else {
+			$this->request->post['payment_opencart_iban_client_name'] = $client_name;
 		}
 
 		if (!$json) {
@@ -186,4 +231,31 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
-}
+
+	private function ibanMod97(string $iban): int {
+		$iban = strtoupper($iban);
+		$rearranged = substr($iban, 4) . substr($iban, 0, 4);
+
+		$numeric = '';
+		$rearranged_length = strlen($rearranged);
+
+		for ($i = 0; $i < $rearranged_length; $i++) {
+			$char = $rearranged[$i];
+
+			if ($char >= 'A' && $char <= 'Z') {
+				$numeric .= (string)(ord($char) - 55);
+			} else {
+				$numeric .= $char;
+			}
+		}
+
+		$remainder = 0;
+		$numeric_length = strlen($numeric);
+
+		for ($i = 0; $i < $numeric_length; $i++) {
+			$remainder = ($remainder * 10 + (int)$numeric[$i]) % 97;
+		}
+
+		return $remainder;
+	}
+	}

@@ -9,8 +9,6 @@ namespace Opencart\Catalog\Controller\Extension\OpencartIban\Payment;
 class OpencartIban extends \Opencart\System\Engine\Controller {
 	private const OPENDATABOT_ENDPOINT = 'https://iban.opendatabot.ua/api/invoice';
 	private const OPENDATABOT_INVOICE_URL_PREFIX = 'https://iban.opendatabot.ua/invoice/';
-	private const OPENDATABOT_CLIENT_KEY = 'KUI8gwVJb3OQN1LuTKEsBx8feSYOJK2m';
-	private const OPENDATABOT_CLIENT_NAME = 'public';
 
 	/**
 	 * Index
@@ -65,8 +63,10 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 
 		$iban = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_iban'));
 		$code = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_code'));
+		$client_key = trim((string)$this->config->get('payment_opencart_iban_client_key'));
+		$client_name = trim((string)$this->config->get('payment_opencart_iban_client_name'));
 
-		if ($iban === '' || $code === '') {
+		if ($iban === '' || $code === '' || $client_key === '' || $client_name === '') {
 			$json['error'] = $this->language->get('error_config');
 		}
 
@@ -105,38 +105,33 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 				'iban'          => $iban,
 				'amount'        => $amount,
 				'purpose'       => $purpose,
-				'x-client-key'  => self::OPENDATABOT_CLIENT_KEY,
-				'x-client-name' => self::OPENDATABOT_CLIENT_NAME
+				'x-client-key'  => $client_key,
+				'x-client-name' => $client_name
 			];
 
-			$invoice_id = $this->createInvoice($payload);
+			$invoice_id = $this->createInvoice($payload, $order_id);
 
 			if ($invoice_id) {
 				$json['redirect'] = self::OPENDATABOT_INVOICE_URL_PREFIX . $invoice_id;
+
+				// Clear cart and checkout session (similar to checkout/success)
+				$this->cart->clear();
+
+				unset($this->session->data['order_id']);
+				unset($this->session->data['payment_method']);
+				unset($this->session->data['payment_methods']);
+				unset($this->session->data['shipping_method']);
+				unset($this->session->data['shipping_methods']);
+				unset($this->session->data['comment']);
+				unset($this->session->data['agree']);
+				unset($this->session->data['coupon']);
+				unset($this->session->data['reward']);
+				unset($this->session->data['voucher']);
+				unset($this->session->data['vouchers']);
+				unset($this->session->data['totals']);
 			} else {
-				$payload['redirect'] = 'true';
-
-				$json['form'] = [
-					'action' => self::OPENDATABOT_ENDPOINT,
-					'fields' => $payload
-				];
+				$json['error'] = $this->language->get('error_invoice');
 			}
-
-			// Clear cart and checkout session (similar to checkout/success)
-			$this->cart->clear();
-
-			unset($this->session->data['order_id']);
-			unset($this->session->data['payment_method']);
-			unset($this->session->data['payment_methods']);
-			unset($this->session->data['shipping_method']);
-			unset($this->session->data['shipping_methods']);
-			unset($this->session->data['comment']);
-			unset($this->session->data['agree']);
-			unset($this->session->data['coupon']);
-			unset($this->session->data['reward']);
-			unset($this->session->data['voucher']);
-			unset($this->session->data['vouchers']);
-			unset($this->session->data['totals']);
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
@@ -149,11 +144,14 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 	 * Returns invoice ID on success, null otherwise.
 	 *
 	 * @param array<string, string> $payload
+	 * @param int $order_id
 	 *
 	 * @return string|null
 	 */
-	private function createInvoice(array $payload): ?string {
+	private function createInvoice(array $payload, int $order_id = 0): ?string {
 		if (!function_exists('curl_init')) {
+			$this->log->write('Opendatabot IBAN: cURL extension is not available' . ($order_id ? ' (order_id=' . $order_id . ')' : ''));
+
 			return null;
 		}
 
@@ -167,17 +165,50 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
 
 		$response = curl_exec($ch);
+		$curl_errno = curl_errno($ch);
+		$curl_error = curl_error($ch);
 		$http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		curl_close($ch);
 
-		if ($response === false || $http_code < 200 || $http_code >= 300) {
+		if ($response === false) {
+			$this->log->write(
+				'Opendatabot IBAN: cURL error ' . (int)$curl_errno . ': ' . $curl_error .
+				($order_id ? ' (order_id=' . $order_id . ')' : '')
+			);
+
+			return null;
+		}
+
+		if ($http_code < 200 || $http_code >= 300) {
+			$snippet = trim(preg_replace('/\s+/', ' ', (string)$response));
+
+			if (strlen($snippet) > 500) {
+				$snippet = substr($snippet, 0, 500) . '...';
+			}
+
+			$this->log->write(
+				'Opendatabot IBAN: HTTP ' . (int)$http_code . '; response: ' . $snippet .
+				($order_id ? ' (order_id=' . $order_id . ')' : '')
+			);
+
 			return null;
 		}
 
 		$decoded = json_decode($response, true);
 
 		if (!is_array($decoded) || empty($decoded['id'])) {
+			$snippet = trim(preg_replace('/\s+/', ' ', (string)$response));
+
+			if (strlen($snippet) > 500) {
+				$snippet = substr($snippet, 0, 500) . '...';
+			}
+
+			$this->log->write(
+				'Opendatabot IBAN: Unexpected API response; response: ' . $snippet .
+				($order_id ? ' (order_id=' . $order_id . ')' : '')
+			);
+
 			return null;
 		}
 
