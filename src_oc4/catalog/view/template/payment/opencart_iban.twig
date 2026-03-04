@@ -6,7 +6,8 @@ $('#button-confirm').on('click', function() {
     var element = this;
 
     $.ajax({
-        url: 'index.php?route=extension/opencart_iban/payment/opencart_iban.confirm&language={{ language }}',
+        url: '{{ confirm_url is defined and confirm_url ? confirm_url|e("js") : ("index.php?route=extension/opencart_iban/payment/opencart_iban.confirm&language=" ~ language)|e("js") }}',
+        type: 'post',
         dataType: 'json',
         beforeSend: function() {
             $(element).button('loading');
@@ -21,12 +22,18 @@ $('#button-confirm').on('click', function() {
             }
 
             if (json['redirect']) {
-                location = json['redirect'];
+                window.location.replace(json['redirect']);
                 return;
             }
         },
         error: function(xhr, ajaxOptions, thrownError) {
             console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+            var msg = '{{ text_request_failed|default("Request failed. Your cart was not changed.")|e("js") }}';
+            try {
+                var r = typeof xhr.responseText === 'string' ? JSON.parse(xhr.responseText) : null;
+                if (r && r.error) { msg = r.error; }
+            } catch (e) {}
+            $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + msg + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
         }
     });
 });

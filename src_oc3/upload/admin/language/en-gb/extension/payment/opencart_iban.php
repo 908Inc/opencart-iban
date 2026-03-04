@@ -9,7 +9,7 @@ $_['text_edit'] = 'Edit Opendatabot IBAN Invoice';
 
 // Entry
 $_['entry_iban'] = 'IBAN';
-$_['entry_code'] = 'Code (RNOKPPP/EDRPOU)';
+$_['entry_code'] = 'ІПН або код компанії';
 $_['entry_client_key'] = 'API key';
 $_['help_client_key'] = 'Key obtained for QR IBAN (x-client-key).';
 $_['entry_client_name'] = 'Client name';

@@ -1,6 +1,7 @@
 # OpenCart IBAN (Opendatabot)
 
 Payment extension for:
+
 - **OpenCart 4.x** (**PHP 8.1+**) — sources in `src_oc4/`
 - **OpenCart 3.x** (**PHP 7.2+**, but OpenCart 3 itself usually needs PHP 7.4) — sources in `src_oc3/`
 
@@ -13,14 +14,15 @@ Creates an IBAN invoice via Opendatabot and redirects the customer to the invoic
 - Creates invoice via Opendatabot API and redirects the customer to the invoice page
 - Admin settings:
   - IBAN
-  - Code (RNOKPPP/EDRPOU)
-  - API key (x-client-key)
-  - Client name (x-client-name)
+  - Code (RNOKPPP/EDRPOU) / ІПН або код компанії
+  - x-client-key (Opendatabot API client key; required)
+  - x-client-name (Opendatabot API client name; required)
   - Payment purpose template (supports `{order_id}`)
   - Order Status (when redirecting)
   - Enable/Disable + Sort order
 
 Limitations (current MVP):
+
 - **UAH only**
 - Invoice is created **server-side** (requires PHP `curl` extension + outbound HTTPS access)
 
@@ -42,18 +44,18 @@ Build (OpenCart 4.x):
 ```
 
 Upload/install:
-1) Admin → **Extensions → Installer** → upload `dist/opencart_iban.ocmod.zip`
-2) Admin → **Extensions → Extensions** → Type: **Payments**
-3) **Opendatabot IBAN Invoice** → **Install**
-4) **Edit** and set:
+
+1. Admin → **Extensions → Installer** → upload `dist/opencart_iban.ocmod.zip`
+2. Admin → **Extensions → Extensions** → Type: **Payments**
+3. **Opendatabot IBAN Invoice** → **Install**
+4. **Edit** and set:
    - `IBAN`
-   - `Code (RNOKPPP/EDRPOU)`
-   - `API key` (x-client-key)
-   - `Client name` (x-client-name)
+   - `Code` (RNOKPPP/EDRPOU)
+   - `x-client-key` and `x-client-name` (get from Opendatabot)
    - `Payment purpose` (optional; supports `{order_id}`)
    - `Order Status` (recommended: Pending / Awaiting payment)
    - `Status` = Enabled
-5) Admin → **Developer Settings** → refresh Theme + Cache
+5. Admin → **Developer Settings** → refresh Theme + Cache
 
 Build (OpenCart 3.x):
 
@@ -62,13 +64,14 @@ Build (OpenCart 3.x):
 ```
 
 Upload/install:
-1) Admin → **Extensions → Installer** → upload `dist/opencart_iban_oc3.ocmod.zip`
-2) Admin → **Extensions → Modifications** → click **Refresh**
-3) Admin → **Extensions → Extensions** → Type: **Payments**
-4) **Opendatabot IBAN Invoice** → **Install**
-5) **Edit** and set:
+
+1. Admin → **Extensions → Installer** → upload `dist/opencart_iban_oc3.ocmod.zip`
+2. Admin → **Extensions → Modifications** → click **Refresh**
+3. Admin → **Extensions → Extensions** → Type: **Payments**
+4. **Opendatabot IBAN Invoice** → **Install**
+5. **Edit** and set:
    - `IBAN`
-   - `Code (RNOKPPP/EDRPOU)`
+   - `ІПН або код компанії`
    - `API key` (x-client-key) (required)
    - `Client name` (x-client-name) (required)
    - `Payment purpose` (optional; supports `{order_id}`)
@@ -78,6 +81,7 @@ Upload/install:
 ## Docker sandboxes (for development)
 
 Prereqs:
+
 - Docker Desktop / Docker Engine + Compose v2
 
 ### OpenCart 4.x (dev mode, recommended)
@@ -88,7 +92,7 @@ docker compose --env-file dev_oc4/.env -f dev_oc4/docker-compose.yml -f dev_oc4/
 ```
 
 - Store: `http://localhost:8080/`
-- Admin: `http://localhost:8080/admin/` (default `admin` / `admin`)
+- Admin: `http://localhost:8080/cms/` (default `admin` / `admin`)
 
 This mode mounts local `src_oc4/` into the container, so template/controller changes apply immediately.
 You still need to **install the extension once** via Installer (so OpenCart registers it in DB).
@@ -111,7 +115,7 @@ docker compose --env-file dev_oc3/.env -f dev_oc3/docker-compose.yml -f dev_oc3/
 ```
 
 - Store: `http://localhost:8081/`
-- Admin: `http://localhost:8081/admin/` (default `admin` / `admin`)
+- Admin: `http://localhost:8081/cms/` (default `admin` / `admin`)
 
 This mode mounts local extension files from `src_oc3/upload/` into the container.
 If you change templates/controllers in OC3, you may need to refresh modifications and clear theme cache in admin.
@@ -128,20 +132,20 @@ The payment method appears **only** when the checkout currency is **UAH**.
 
 This applies to both sandboxes and real stores.
 
-1) Admin → **System → Localisation → Currencies** → ensure **UAH** exists and is Enabled
-2) Admin → **System → Settings** → edit your store  
-3) Tab **Local** → set **Currency = UAH** → Save  
-4) In storefront, switch currency to UAH (or clear the `currency` cookie / use incognito)
+1. Admin → **System → Localisation → Currencies** → ensure **UAH** exists and is Enabled
+2. Admin → **System → Settings** → edit your store
+3. Tab **Local** → set **Currency = UAH** → Save
+4. In storefront, switch currency to UAH (or clear the `currency` cookie / use incognito)
 
 ## Xdebug (optional)
 
-1) In `dev_oc4/.env` (or `dev_oc3/.env`) set:
+1. In `dev_oc4/.env` (or `dev_oc3/.env`) set:
 
 ```bash
 XDEBUG_MODE=debug,develop
 ```
 
-2) Rebuild and recreate the container:
+2. Rebuild and recreate the container:
 
 ```bash
 docker compose --env-file dev_oc4/.env -f dev_oc4/docker-compose.yml -f dev_oc4/docker-compose.dev.yml up -d --build --force-recreate opencart
@@ -155,6 +159,7 @@ docker compose --env-file dev_oc3/.env -f dev_oc3/docker-compose.yml -f dev_oc3/
 
 Defaults: `host.docker.internal:9003`.  
 Path mapping for IDE:
+
 - OpenCart 4.x: `/var/www/html/extension/opencart_iban` → local `src_oc4/`.
 - OpenCart 3.x: `/var/www/html` → local `src_oc3/upload` (mounted per-file in dev compose).
 

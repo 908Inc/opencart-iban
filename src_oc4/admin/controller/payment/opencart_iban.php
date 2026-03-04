@@ -109,8 +109,8 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 
 		$data['payment_opencart_iban_iban'] = (string)$this->config->get('payment_opencart_iban_iban');
 		$data['payment_opencart_iban_code'] = (string)$this->config->get('payment_opencart_iban_code');
-		$data['payment_opencart_iban_client_key'] = (string)$this->config->get('payment_opencart_iban_client_key');
-		$data['payment_opencart_iban_client_name'] = (string)$this->config->get('payment_opencart_iban_client_name');
+		$data['payment_opencart_iban_x_client_key'] = (string)$this->config->get('payment_opencart_iban_x_client_key');
+		$data['payment_opencart_iban_x_client_name'] = (string)$this->config->get('payment_opencart_iban_x_client_name');
 
 		// Purpose (multi-language)
 		$this->load->model('localisation/language');
@@ -200,24 +200,24 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			}
 		}
 
-		$client_key = isset($this->request->post['payment_opencart_iban_client_key'])
-			? trim((string)$this->request->post['payment_opencart_iban_client_key'])
+		$x_client_key = isset($this->request->post['payment_opencart_iban_x_client_key'])
+			? trim((string)$this->request->post['payment_opencart_iban_x_client_key'])
 			: '';
 
-		if ($client_key === '') {
-			$json['error']['client_key'] = $this->language->get('error_client_key');
+		if ($x_client_key === '') {
+			$json['error']['x_client_key'] = $this->language->get('error_x_client_key');
 		} else {
-			$this->request->post['payment_opencart_iban_client_key'] = $client_key;
+			$this->request->post['payment_opencart_iban_x_client_key'] = $x_client_key;
 		}
 
-		$client_name = isset($this->request->post['payment_opencart_iban_client_name'])
-			? trim((string)$this->request->post['payment_opencart_iban_client_name'])
+		$x_client_name = isset($this->request->post['payment_opencart_iban_x_client_name'])
+			? trim((string)$this->request->post['payment_opencart_iban_x_client_name'])
 			: '';
 
-		if ($client_name === '') {
-			$json['error']['client_name'] = $this->language->get('error_client_name');
+		if ($x_client_name === '') {
+			$json['error']['x_client_name'] = $this->language->get('error_x_client_name');
 		} else {
-			$this->request->post['payment_opencart_iban_client_name'] = $client_name;
+			$this->request->post['payment_opencart_iban_x_client_name'] = $x_client_name;
 		}
 
 		if (!$json) {

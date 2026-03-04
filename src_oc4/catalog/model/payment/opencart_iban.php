@@ -45,7 +45,7 @@ class OpencartIban extends \Opencart\System\Engine\Model {
 		if ($status) {
 			$option_data['opencart_iban'] = [
 				'code' => 'opencart_iban.opencart_iban',
-				'name' => $this->language->get('heading_title')
+				'name' => $this->language->get('text_payment_option')
 			];
 
 			$method_data = [

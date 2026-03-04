@@ -19,6 +19,8 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		$this->load->language('extension/opencart_iban/payment/opencart_iban');
 
 		$data['language'] = $this->config->get('config_language');
+		$data['confirm_url'] = $this->url->link('extension/opencart_iban/payment/opencart_iban.confirm', 'language=' . $this->config->get('config_language'), true);
+		$data['text_request_failed'] = $this->language->get('text_request_failed');
 
 		return $this->load->view('extension/opencart_iban/payment/opencart_iban', $data);
 	}
@@ -29,9 +31,28 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 	 * @return void
 	 */
 	public function confirm(): void {
+		ob_start();
+
+		$this->response->addHeader('Content-Type: application/json; charset=utf-8');
+
+		try {
+			$this->confirmAction();
+		} catch (\Throwable $e) {
+			ob_end_clean();
+			$this->load->language('extension/opencart_iban/payment/opencart_iban');
+			$this->response->setOutput(json_encode(['error' => $this->language->get('error_invoice_failed')]));
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function confirmAction(): void {
 		$this->load->language('extension/opencart_iban/payment/opencart_iban');
 
 		$json = [];
+		$order_id = null;
+		$order_info = null;
 
 		// Order
 		if (isset($this->session->data['order_id'])) {
@@ -51,6 +72,9 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 
 		// If the order is missing, do not continue with other checks.
 		if (isset($json['redirect'])) {
+			if (ob_get_level()) {
+				ob_end_clean();
+			}
 			$this->response->addHeader('Content-Type: application/json');
 			$this->response->setOutput(json_encode($json));
 
@@ -70,8 +94,28 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			$json['error'] = $this->language->get('error_config');
 		}
 
+		$x_client_key  = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
+		$x_client_name = trim((string)$this->config->get('payment_opencart_iban_x_client_name'));
+		if ($x_client_key === '' || $x_client_name === '') {
+			$json['error'] = $this->language->get('error_config_keys');
+		}
+
 		if (!isset($json['redirect']) && isset($order_info) && strtoupper((string)$order_info['currency_code']) !== 'UAH') {
 			$json['error'] = $this->language->get('error_currency');
+		}
+
+		// On any error: delete the order so no order is created, keep cart, return error
+		if (isset($json['error']) && $order_id !== null) {
+			$this->load->model('checkout/order');
+			$this->model_checkout_order->deleteOrder($order_id);
+			unset($this->session->data['order_id']);
+			if (ob_get_level()) {
+				ob_end_clean();
+			}
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+
+			return;
 		}
 
 		if (!$json) {
@@ -100,23 +144,30 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 				$purpose = $prefix . $separator . $order_id;
 			}
 
+			$x_client_key  = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
+			$x_client_name = trim((string)$this->config->get('payment_opencart_iban_x_client_name'));
+
 			$payload = [
 				'code'          => $code,
 				'iban'          => $iban,
 				'amount'        => $amount,
 				'purpose'       => $purpose,
-				'x-client-key'  => $client_key,
-				'x-client-name' => $client_name
+				'x-client-key'  => $x_client_key,
+				'x-client-name' => $x_client_name
 			];
 
-			$invoice_id = $this->createInvoice($payload, $order_id);
+			$invoice_id = $this->createInvoice($payload);
 
 			if ($invoice_id) {
 				$json['redirect'] = self::OPENDATABOT_INVOICE_URL_PREFIX . $invoice_id;
+				// Send response first, then clear cart — so if output fails, cart is not cleared
+				if (ob_get_level()) {
+					ob_end_clean();
+				}
+				$this->response->addHeader('Content-Type: application/json');
+				$this->response->setOutput(json_encode($json));
 
-				// Clear cart and checkout session (similar to checkout/success)
 				$this->cart->clear();
-
 				unset($this->session->data['order_id']);
 				unset($this->session->data['payment_method']);
 				unset($this->session->data['payment_methods']);
@@ -129,11 +180,19 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 				unset($this->session->data['voucher']);
 				unset($this->session->data['vouchers']);
 				unset($this->session->data['totals']);
-			} else {
-				$json['error'] = $this->language->get('error_invoice');
+
+				return;
 			}
+
+			// API failed: do not create order, keep cart
+			$this->model_checkout_order->deleteOrder($order_id);
+			unset($this->session->data['order_id']);
+			$json['error'] = $this->language->get('error_invoice_failed');
 		}
 
+		if (ob_get_level()) {
+			ob_end_clean();
+		}
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}

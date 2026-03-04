@@ -34,19 +34,19 @@
             </div>
           </div>
           <div class="row mb-3">
-            <label for="input-client-key" class="col-sm-2 col-form-label">{{ entry_client_key }}</label>
+            <label for="input-x-client-key" class="col-sm-2 col-form-label">{{ entry_x_client_key }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_client_key" value="{{ payment_opencart_iban_client_key|e }}" placeholder="{{ entry_client_key }}" id="input-client-key" class="form-control" required/>
-              <div id="error-client-key" class="invalid-feedback"></div>
-              <div class="form-text">{{ help_client_key }}</div>
+              <input type="text" name="payment_opencart_iban_x_client_key" value="{{ payment_opencart_iban_x_client_key|e }}" placeholder="{{ entry_x_client_key }}" id="input-x-client-key" class="form-control" required/>
+              <div class="form-text">{{ help_x_client_key }}</div>
+              <div id="error-x-client-key" class="invalid-feedback"></div>
             </div>
           </div>
           <div class="row mb-3">
-            <label for="input-client-name" class="col-sm-2 col-form-label">{{ entry_client_name }}</label>
+            <label for="input-x-client-name" class="col-sm-2 col-form-label">{{ entry_x_client_name }}</label>
             <div class="col-sm-10">
-              <input type="text" name="payment_opencart_iban_client_name" value="{{ payment_opencart_iban_client_name|e }}" placeholder="{{ entry_client_name }}" id="input-client-name" class="form-control" required/>
-              <div id="error-client-name" class="invalid-feedback"></div>
-              <div class="form-text">{{ help_client_name }}</div>
+              <input type="text" name="payment_opencart_iban_x_client_name" value="{{ payment_opencart_iban_x_client_name|e }}" placeholder="{{ entry_x_client_name }}" id="input-x-client-name" class="form-control" required/>
+              <div class="form-text">{{ help_x_client_name }}</div>
+              <div id="error-x-client-name" class="invalid-feedback"></div>
             </div>
           </div>
           {% for language in languages %}
