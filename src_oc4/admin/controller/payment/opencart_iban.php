@@ -138,12 +138,25 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			$data['payment_opencart_iban_purpose'][$language_id] = $value;
 		}
 
-		// Order Status
+		// Order Status (filtered by current admin language; fallback to first language that has statuses if empty, e.g. when Ukrainian has no names in DB)
 		$data['payment_opencart_iban_order_status_id'] = (int)($this->config->get('payment_opencart_iban_order_status_id') ?: $this->config->get('config_order_status_id'));
 
 		$this->load->model('localisation/order_status');
 
 		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+		if (empty($data['order_statuses']) && isset($languages) && is_array($languages)) {
+			foreach ($languages as $language) {
+				$language_id = (int)($language['language_id'] ?? 0);
+				if ($language_id === 0) {
+					continue;
+				}
+				$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_status` WHERE `language_id` = '" . $language_id . "' ORDER BY `name`");
+				if (!empty($query->rows)) {
+					$data['order_statuses'] = $query->rows;
+					break;
+				}
+			}
+		}
 
 		$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status');
 		$data['payment_opencart_iban_sort_order'] = $this->config->get('payment_opencart_iban_sort_order');

@@ -14,7 +14,7 @@ Creates an IBAN invoice via Opendatabot and redirects the customer to the invoic
 - Creates invoice via Opendatabot API and redirects the customer to the invoice page
 - Admin settings:
   - IBAN
-  - Code (RNOKPPP/EDRPOU) / ІПН або код компанії
+  - ІПН або код компанії
   - x-client-key (Opendatabot API client key; required)
   - x-client-name (Opendatabot API client name; required)
   - Payment purpose template (supports `{order_id}`)
@@ -50,7 +50,7 @@ Upload/install:
 3. **Opendatabot IBAN Invoice** → **Install**
 4. **Edit** and set:
    - `IBAN`
-   - `Code` (RNOKPPP/EDRPOU)
+   - `Code` (ІПН або код компанії)
    - `x-client-key` and `x-client-name` (get from Opendatabot)
    - `Payment purpose` (optional; supports `{order_id}`)
    - `Order Status` (recommended: Pending / Awaiting payment)
@@ -136,6 +136,23 @@ This applies to both sandboxes and real stores.
 2. Admin → **System → Settings** → edit your store
 3. Tab **Local** → set **Currency = UAH** → Save
 4. In storefront, switch currency to UAH (or clear the `currency` cookie / use incognito)
+
+## Troubleshooting
+
+### "No Payment options are available. Please contact us for assistance!"
+
+This message appears at checkout when **no** payment method returns an option. Common causes:
+
+1. **Currency is not UAH**  
+   IBAN (Opendatabot) is UAH-only. Set the store default currency to UAH and ensure the customer’s cart is in UAH (see [Currency (UAH)](#currency-uah) above). If IBAN is the only payment extension, you’ll see this error when the cart is in another currency.
+
+2. **Extension not installed or disabled**  
+   Install the extension (Extensions → Installer), then **Extensions → Extensions** → Type: **Payments** → **Opendatabot IBAN Invoice** → **Install** (if needed) and **Edit** → set **Status** = **Enabled**.
+
+3. **Required settings missing**  
+   In **Extensions → Payments → Opendatabot IBAN Invoice → Edit**, fill in: **IBAN**, **Code** (EDRPOU/RNOKPPP), **x-client-key**, **x-client-name**. If any of these are empty, the method will not be offered (and when it’s the only payment method, you get “No Payment options”).
+
+When the extension is enabled but not available (e.g. wrong currency or missing API keys), checkout will show the “IBAN invoice (Opendatabot)” method with an explanatory message instead of the generic “No Payment options” error.
 
 ## Xdebug (optional)
 

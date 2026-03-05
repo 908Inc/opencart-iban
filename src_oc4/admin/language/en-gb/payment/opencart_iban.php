@@ -9,7 +9,7 @@ $_['text_edit']          = 'Edit Opendatabot IBAN Invoice';
 
 // Entry
 $_['entry_iban']         = 'IBAN';
-$_['entry_code']         = 'Code (RNOKPPP/EDRPOU)';
+$_['entry_code']         = 'Code (EDRPOU / Tax ID)';
 $_['entry_x_client_key'] = 'x-client-key';
 $_['entry_x_client_name'] = 'x-client-name';
 $_['entry_purpose']      = 'Payment purpose';
@@ -27,7 +27,7 @@ $_['error_permission']   = 'Warning: You do not have permission to modify Openda
 $_['error_iban']         = 'IBAN is required!';
 $_['error_iban_format']   = 'Please enter a valid UA IBAN (UA + 27 digits).';
 $_['error_iban_checksum'] = 'Please enter a valid IBAN (checksum is invalid).';
-$_['error_code']         = 'RNOKPPP/EDRPOU code is required!';
+$_['error_code']         = 'Code (EDRPOU / Tax ID) is required!';
 $_['error_code_format']   = 'Please enter a valid code (8 or 10 digits).';
 $_['error_x_client_key']  = 'x-client-key is required!';
 $_['error_x_client_name'] = 'x-client-name is required!';

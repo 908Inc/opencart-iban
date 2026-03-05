@@ -87,15 +87,12 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 
 		$iban = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_iban'));
 		$code = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_code'));
-		$client_key = trim((string)$this->config->get('payment_opencart_iban_client_key'));
-		$client_name = trim((string)$this->config->get('payment_opencart_iban_client_name'));
-
-		if ($iban === '' || $code === '' || $client_key === '' || $client_name === '') {
-			$json['error'] = $this->language->get('error_config');
-		}
-
 		$x_client_key  = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
 		$x_client_name = trim((string)$this->config->get('payment_opencart_iban_x_client_name'));
+
+		if ($iban === '' || $code === '' || $x_client_key === '' || $x_client_name === '') {
+			$json['error'] = $this->language->get('error_config');
+		}
 		if ($x_client_key === '' || $x_client_name === '') {
 			$json['error'] = $this->language->get('error_config_keys');
 		}
