@@ -1,186 +1,149 @@
 # OpenCart IBAN (Opendatabot)
 
-Payment extension for:
+Розширення оплати для OpenCart: створює рахунок IBAN через Opendatabot і перенаправляє клієнта на сторінку оплати.
 
-- **OpenCart 4.x** (**PHP 8.1+**) — sources in `src_oc4/`
-- **OpenCart 3.x** (**PHP 7.2+**, but OpenCart 3 itself usually needs PHP 7.4) — sources in `src_oc3/`
+Підтримувані версії:
 
-Creates an IBAN invoice via Opendatabot and redirects the customer to the invoice page.
+- **OpenCart 4.x** (PHP 8.1+)
+- **OpenCart 3.x** (PHP 7.4+)
 
-## What it does
+---
 
-- Adds a checkout payment method: **IBAN invoice (Opendatabot)**
-- Builds invoice payload from the order
-- Creates invoice via Opendatabot API and redirects the customer to the invoice page
-- Admin settings:
-  - IBAN
-  - ІПН або код компанії
-  - x-client-key (Opendatabot API client key; required)
-  - x-client-name (Opendatabot API client name; required)
-  - Payment purpose template (supports `{order_id}`)
-  - Order Status (when redirecting)
-  - Enable/Disable + Sort order
+## Встановлення на існуючий магазин
 
-Limitations (current MVP):
+Нижче — покрокова інструкція, як встановити розширення в уже працюючий магазин OpenCart.
 
-- **UAH only**
-- Invoice is created **server-side** (requires PHP `curl` extension + outbound HTTPS access)
+### Що потрібно перед встановленням
 
-## Repo layout
+1. **Архів розширення** — файл `opencart_iban.ocmod.zip` (для OpenCart 4) або `opencart_iban_oc3.ocmod.zip` (для OpenCart 3). Якщо у вас вихідний код з репозиторію, архів можна зібрати скриптом (див. розділ «Збірка архіву» в кінці).
+2. **Ключі API Opendatabot** — ключ клієнта (x-client-key) та ім’я клієнта (x-client-name). Їх можна отримати на [iban.opendatabot.ua](https://iban.opendatabot.ua/create-invoice).
+3. **IBAN та код компанії** — ваш український IBAN та ІПН/ЄДРПОУ (8 або 10 цифр).
 
-- `src_oc4/` — OpenCart 4.x extension sources (installed into `extension/opencart_iban/`)
-- `src_oc3/` — OpenCart 3.x `.ocmod.zip` sources (`upload/` structure)
-- `scripts/` — build scripts
-- `dist/` — built `.ocmod.zip` (gitignored)
-- `dev_oc4/` — Docker sandbox store (OpenCart 4.x by git tag)
-- `dev_oc3/` — Docker sandbox store (OpenCart 3.x by git tag)
+---
 
-## Build & install (as a store owner would)
+### Встановлення в OpenCart 4.x
 
-Build (OpenCart 4.x):
+1. Увійдіть в **адмін-панель** магазину.
+2. Відкрийте **Розширення → Встановлювач** (Extensions → Installer).
+3. Натисніть **Завантажити** і виберіть файл **opencart_iban.ocmod.zip**.
+4. Після успішної установки відкрийте **Розширення → Розширення** (Extensions → Extensions).
+5. У полі **Тип** оберіть **Оплата** (Payments).
+6. Знайдіть у списку **Opendatabot IBAN Invoice** і натисніть **Встановити** (Install).
+7. Натисніть **Редагувати** (Edit) і заповніть налаштування (див. розділ «Налаштування» нижче).
+8. Збережіть форму. За потреби: **Система → Налаштування** → вкладка **Сервер** → **Оновлення теми та кешу** (або Developer Settings → Refresh).
+
+Після цього спосіб оплати «Рахунок IBAN (Opendatabot)» з’явиться в оформленні замовлення (за умови, що валюта кошика — UAH).
+
+---
+
+### Встановлення в OpenCart 3.x
+
+1. Увійдіть в **адмін-панель** магазину.
+2. Відкрийте **Розширення → Встановлювач** (Extensions → Installer).
+3. Завантажте файл **opencart_iban_oc3.ocmod.zip**.
+4. Відкрийте **Розширення → Модифікації** (Extensions → Modifications) і натисніть **Оновити** (Refresh).
+5. Відкрийте **Розширення → Розширення**, тип — **Оплата** (Payments).
+6. Знайдіть **Opendatabot IBAN Invoice** → **Встановити** (Install).
+7. Натисніть **Редагувати** (Edit) і заповніть налаштування (див. нижче).
+8. Збережіть. За потреби очистіть кеш теми в адмінці.
+
+Після цього спосіб оплати з’явиться на етапі оплати в чекауті (якщо валюта — UAH).
+
+---
+
+## Налаштування розширення
+
+У **Розширення → Оплата → Opendatabot IBAN Invoice → Редагувати** заповніть:
+
+| Поле | Опис |
+|------|------|
+| **IBAN** | Український IBAN (формат UA + 27 цифр, без пробілів). Обов’язково. |
+| **РНОКПП / ЄДРПОУ** (Code) | ІПН або код компанії — 8 або 10 цифр. Обов’язково. |
+| **x-client-key** | Ключ клієнта API Opendatabot (отримати на iban.opendatabot.ua). Обов’язково. |
+| **x-client-name** | Ім’я клієнта API (наприклад, public або назва застосунку). Обов’язково. |
+| **Призначення платежу** (Payment purpose) | Текст для рахунку. Можна використати плейсхолдер `{order_id}` — підставиться номер замовлення. Якщо не заповнити, номер замовлення додасться автоматично. |
+| **Статус замовлення** (Order Status) | Статус, який встановлюється після перенаправлення клієнта на оплату (рекомендовано: «Очікування» / Pending). |
+| **Статус** (Status) | Увімкнено — щоб спосіб оплати показувався в чекауті. |
+| **Порядок сортування** (Sort Order) | Порядок відображення серед інших способів оплати. |
+
+Після зміни налаштувань натисніть **Зберегти**.
+
+---
+
+## Валюта UAH
+
+Спосіб оплати **показується лише тоді, коли валюта кошика — UAH**.
+
+Що перевірити в існуючому магазині:
+
+1. **Система → Локалізація → Валюти** — валюта **UAH** має існувати і бути **увімкненою**.
+2. **Система → Налаштування** → ваша торгівельна точка → вкладка **Локальні** — поле **Валюта** встановите на **UAH** (валюта за замовчуванням).
+3. У магазині (на сайті) клієнт має оформляти замовлення в **UAH** (вибір валюти або валюта за замовчуванням). Якщо раніше була інша валюта, можна очистити cookies або відкрити сайт в режимі інкогніто.
+
+Якщо валюта не UAH, на етапі оплати з’явиться повідомлення, що цей спосіб доступний лише для UAH, замість загального «Немає доступних способів оплати».
+
+---
+
+## Усунення несправностей
+
+### «Немає доступних способів оплати. Зв’яжіться з нами!»
+
+Зазвичай означає, що жоден спосіб оплати не повернув варіанти. Можливі причини:
+
+1. **Валюта не UAH** — переконайтеся, що валюта магазину та кошика клієнта — UAH (див. розділ «Валюта UAH» вище).
+2. **Розширення не встановлено або вимкнено** — у **Розширення → Оплата** переконайтеся, що **Opendatabot IBAN Invoice** встановлено і в налаштуваннях **Статус** = **Увімкнено**.
+3. **Не заповнені обов’язкові поля** — у налаштуваннях розширення мають бути заповнені: **IBAN**, **РНОКПП/ЄДРПОУ**, **x-client-key**, **x-client-name**. Якщо хоча б одне порожнє, спосіб оплати не пропонується; коли це єдиний спосіб, з’являється помилка «Немає доступних способів оплати».
+
+Якщо розширення увімкнено, але умови не виконані (наприклад, не UAH або немає ключів), замість загальної помилки клієнт побачить назву способу оплати та пояснення (наприклад, «Цей спосіб доступний лише для UAH»).
+
+### У списку «Статус замовлення» нічого немає (українська адмінка)
+
+Якщо в адмін-панелі обрано українську мову, а в списку статусів замовлення порожньо — у базі можливо немає назв статусів для української мови. Розширення підставляє статуси з іншої мови (наприклад, англійської), щоб список не був порожнім. Щоб у списку були саме українські назви, додайте переклади: **Система → Локалізація → Статуси замовлень** → для кожного статусу заповніть назву українською.
+
+---
+
+## Обмеження (поточна версія)
+
+- Оплата лише в **UAH**.
+- Рахунок створюється на сервері (потрібні PHP-розширення **curl** та доступ в інтернет по HTTPS).
+
+---
+
+## Збірка архіву з вихідного коду
+
+Якщо у вас є репозиторій, а не готовий `.ocmod.zip`:
+
+**OpenCart 4.x:**
 
 ```bash
 ./scripts/build-ocmod-zip-oc4.sh
 ```
 
-Upload/install:
+Готовий файл: `dist/opencart_iban.ocmod.zip`.
 
-1. Admin → **Extensions → Installer** → upload `dist/opencart_iban.ocmod.zip`
-2. Admin → **Extensions → Extensions** → Type: **Payments**
-3. **Opendatabot IBAN Invoice** → **Install**
-4. **Edit** and set:
-   - `IBAN`
-   - `Code` (ІПН або код компанії)
-   - `x-client-key` and `x-client-name` (get from Opendatabot)
-   - `Payment purpose` (optional; supports `{order_id}`)
-   - `Order Status` (recommended: Pending / Awaiting payment)
-   - `Status` = Enabled
-5. Admin → **Developer Settings** → refresh Theme + Cache
-
-Build (OpenCart 3.x):
+**OpenCart 3.x:**
 
 ```bash
 ./scripts/build-ocmod-zip-oc3.sh
 ```
 
-Upload/install:
+Готовий файл: `dist/opencart_iban_oc3.ocmod.zip`.
 
-1. Admin → **Extensions → Installer** → upload `dist/opencart_iban_oc3.ocmod.zip`
-2. Admin → **Extensions → Modifications** → click **Refresh**
-3. Admin → **Extensions → Extensions** → Type: **Payments**
-4. **Opendatabot IBAN Invoice** → **Install**
-5. **Edit** and set:
-   - `IBAN`
-   - `ІПН або код компанії`
-   - `API key` (x-client-key) (required)
-   - `Client name` (x-client-name) (required)
-   - `Payment purpose` (optional; supports `{order_id}`)
-   - `Order Status` (recommended: Pending / Awaiting payment)
-   - `Status` = Enabled
+Далі встановлюйте архів так, як описано в розділах «Встановлення в OpenCart 4.x» / «Встановлення в OpenCart 3.x» вище.
 
-## Docker sandboxes (for development)
+---
 
-Prereqs:
+## Структура репозиторію (для розробників)
 
-- Docker Desktop / Docker Engine + Compose v2
+- `src_oc4/` — вихідний код для OpenCart 4.x
+- `src_oc3/` — вихідний код для OpenCart 3.x (структура `upload/`)
+- `scripts/` — скрипти збірки
+- `dist/` — зібрані `.ocmod.zip` (в git не потрапляють)
+- `dev_oc4/` та `dev_oc3/` — Docker-стенди для розробки
 
-### OpenCart 4.x (dev mode, recommended)
+---
 
-```bash
-cp dev_oc4/.env.example dev_oc4/.env
-docker compose --env-file dev_oc4/.env -f dev_oc4/docker-compose.yml -f dev_oc4/docker-compose.dev.yml up -d --build
-```
+## Посилання
 
-- Store: `http://localhost:8080/`
-- Admin: `http://localhost:8080/cms/` (default `admin` / `admin`)
-
-This mode mounts local `src_oc4/` into the container, so template/controller changes apply immediately.
-You still need to **install the extension once** via Installer (so OpenCart registers it in DB).
-
-Reset sandbox (wipe DB + files):
-
-```bash
-docker compose --env-file dev_oc4/.env -f dev_oc4/docker-compose.yml down -v --remove-orphans
-```
-
-OpenCart version:
-
-Set `OPENCART_VERSION` in `dev_oc4/.env` (example: `4.0.2.3`), then reset with `down -v`.
-
-### OpenCart 3.x (dev mode, recommended)
-
-```bash
-cp dev_oc3/.env.example dev_oc3/.env
-docker compose --env-file dev_oc3/.env -f dev_oc3/docker-compose.yml -f dev_oc3/docker-compose.dev.yml up -d --build
-```
-
-- Store: `http://localhost:8081/`
-- Admin: `http://localhost:8081/cms/` (default `admin` / `admin`)
-
-This mode mounts local extension files from `src_oc3/upload/` into the container.
-If you change templates/controllers in OC3, you may need to refresh modifications and clear theme cache in admin.
-
-Reset sandbox (wipe DB + files):
-
-```bash
-docker compose --env-file dev_oc3/.env -f dev_oc3/docker-compose.yml down -v --remove-orphans
-```
-
-### Currency (UAH)
-
-The payment method appears **only** when the checkout currency is **UAH**.
-
-This applies to both sandboxes and real stores.
-
-1. Admin → **System → Localisation → Currencies** → ensure **UAH** exists and is Enabled
-2. Admin → **System → Settings** → edit your store
-3. Tab **Local** → set **Currency = UAH** → Save
-4. In storefront, switch currency to UAH (or clear the `currency` cookie / use incognito)
-
-## Troubleshooting
-
-### "No Payment options are available. Please contact us for assistance!"
-
-This message appears at checkout when **no** payment method returns an option. Common causes:
-
-1. **Currency is not UAH**  
-   IBAN (Opendatabot) is UAH-only. Set the store default currency to UAH and ensure the customer’s cart is in UAH (see [Currency (UAH)](#currency-uah) above). If IBAN is the only payment extension, you’ll see this error when the cart is in another currency.
-
-2. **Extension not installed or disabled**  
-   Install the extension (Extensions → Installer), then **Extensions → Extensions** → Type: **Payments** → **Opendatabot IBAN Invoice** → **Install** (if needed) and **Edit** → set **Status** = **Enabled**.
-
-3. **Required settings missing**  
-   In **Extensions → Payments → Opendatabot IBAN Invoice → Edit**, fill in: **IBAN**, **Code** (EDRPOU/RNOKPPP), **x-client-key**, **x-client-name**. If any of these are empty, the method will not be offered (and when it’s the only payment method, you get “No Payment options”).
-
-When the extension is enabled but not available (e.g. wrong currency or missing API keys), checkout will show the “IBAN invoice (Opendatabot)” method with an explanatory message instead of the generic “No Payment options” error.
-
-## Xdebug (optional)
-
-1. In `dev_oc4/.env` (or `dev_oc3/.env`) set:
-
-```bash
-XDEBUG_MODE=debug,develop
-```
-
-2. Rebuild and recreate the container:
-
-```bash
-docker compose --env-file dev_oc4/.env -f dev_oc4/docker-compose.yml -f dev_oc4/docker-compose.dev.yml up -d --build --force-recreate opencart
-```
-
-For OpenCart 3.x:
-
-```bash
-docker compose --env-file dev_oc3/.env -f dev_oc3/docker-compose.yml -f dev_oc3/docker-compose.dev.yml up -d --build --force-recreate opencart
-```
-
-Defaults: `host.docker.internal:9003`.  
-Path mapping for IDE:
-
-- OpenCart 4.x: `/var/www/html/extension/opencart_iban` → local `src_oc4/`.
-- OpenCart 3.x: `/var/www/html` → local `src_oc3/upload` (mounted per-file in dev compose).
-
-## References
-
-- OpenCart developer guide (extensions): https://opencart.gitbook.io/opencart/developer-guide/extensions
-- Opendatabot IBAN invoice (form + API example): https://iban.opendatabot.ua/create-invoice
+- [Довідник розробника OpenCart (розширення)](https://opencart.gitbook.io/opencart/developer-guide/extensions)
+- [Opendatabot: створення рахунку IBAN](https://iban.opendatabot.ua/create-invoice)
