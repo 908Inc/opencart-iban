@@ -10,6 +10,7 @@ $_['text_redirecting']     = 'Redirecting to the IBAN invoice…';
 $_['text_redirect_notice'] = 'If you are not redirected automatically, click the button below.';
 $_['text_purpose']         = 'Payment for order #%s';
 $_['text_payment_comment'] = 'Customer was redirected to Opendatabot IBAN invoice.';
+$_['text_callback_paid']   = 'Payment confirmed via Opendatabot autoclient.';
 
 // Button
 $_['button_pay']           = '₴ Pay IBAN invoice';

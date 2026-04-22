@@ -88,6 +88,22 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
 
+		// Autoclient
+		if (isset($this->request->post['payment_opencart_iban_autoclient'])) {
+			$data['payment_opencart_iban_autoclient'] = $this->request->post['payment_opencart_iban_autoclient'];
+		} else {
+			$data['payment_opencart_iban_autoclient'] = $this->config->get('payment_opencart_iban_autoclient');
+		}
+
+		if (isset($this->request->post['payment_opencart_iban_paid_order_status_id'])) {
+			$data['payment_opencart_iban_paid_order_status_id'] = $this->request->post['payment_opencart_iban_paid_order_status_id'];
+		} else {
+			$data['payment_opencart_iban_paid_order_status_id'] = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
+		}
+
+		// Callback URL for autoclient
+		$data['callback_url'] = HTTPS_CATALOG . 'index.php?route=extension/payment/opencart_iban/callback';
+
 		// Status
 		if (isset($this->request->post['payment_opencart_iban_status'])) {
 			$data['payment_opencart_iban_status'] = $this->request->post['payment_opencart_iban_status'];

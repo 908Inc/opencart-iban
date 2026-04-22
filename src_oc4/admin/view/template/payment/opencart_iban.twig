@@ -72,6 +72,41 @@
             </div>
           </div>
           <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ entry_autoclient }}</label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input type="hidden" name="payment_opencart_iban_autoclient" value="0"/>
+                <input type="checkbox" name="payment_opencart_iban_autoclient" value="1" id="input-autoclient" class="form-check-input"{% if payment_opencart_iban_autoclient %} checked{% endif %}/>
+              </div>
+              <div class="form-text">{{ help_autoclient }}</div>
+            </div>
+          </div>
+          <div class="row mb-3" id="autoclient-settings" style="{% if not payment_opencart_iban_autoclient %}display:none{% endif %}">
+            <div class="col-sm-10 offset-sm-2">
+              <div class="card border-info">
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label for="input-paid-order-status" class="form-label">{{ entry_paid_order_status }}</label>
+                    <select name="payment_opencart_iban_paid_order_status_id" id="input-paid-order-status" class="form-select">
+                      {% for order_status in order_statuses %}
+                        <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_opencart_iban_paid_order_status_id %} selected{% endif %}>{{ order_status.name }}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">{{ help_paid_order_status }}</div>
+                  </div>
+                  <div class="mb-0">
+                    <label class="form-label">Callback URL</label>
+                    <div class="input-group">
+                      <input type="text" value="{{ callback_url }}" class="form-control" readonly id="input-callback-url"/>
+                      <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('input-callback-url').value)"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                    <div class="form-text">{{ help_callback_url }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
             <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
             <div class="col-sm-10">
               <div class="form-check form-switch form-switch-lg">
@@ -91,4 +126,9 @@
     </div>
   </div>
 </div>
+<script>
+document.getElementById('input-autoclient').addEventListener('change', function() {
+  document.getElementById('autoclient-settings').style.display = this.checked ? '' : 'none';
+});
+</script>
 {{ footer }}

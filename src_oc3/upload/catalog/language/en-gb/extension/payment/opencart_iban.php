@@ -16,3 +16,4 @@ $_['error_config'] = 'Payment method is not configured (missing IBAN, company co
 $_['error_invoice'] = 'Unable to create invoice. Please try again later.';
 $_['error_order'] = 'Order not found.';
 $_['error_payment_method'] = 'Please choose the IBAN invoice payment method again.';
+$_['text_callback_paid'] = 'Payment confirmed via Opendatabot autoclient.';

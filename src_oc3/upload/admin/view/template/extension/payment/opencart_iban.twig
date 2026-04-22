@@ -106,6 +106,54 @@
           </div>
 
           <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-autoclient">{{ entry_autoclient }}</label>
+            <div class="col-sm-10">
+              <select name="payment_opencart_iban_autoclient" id="input-autoclient" class="form-control">
+                {% if payment_opencart_iban_autoclient %}
+                  <option value="1" selected="selected">{{ text_enabled }}</option>
+                  <option value="0">{{ text_disabled }}</option>
+                {% else %}
+                  <option value="1">{{ text_enabled }}</option>
+                  <option value="0" selected="selected">{{ text_disabled }}</option>
+                {% endif %}
+              </select>
+              <p class="help-block">{{ help_autoclient }}</p>
+            </div>
+          </div>
+
+          <div class="form-group" id="autoclient-settings" style="{% if not payment_opencart_iban_autoclient %}display:none{% endif %}">
+            <div class="col-sm-10 col-sm-offset-2">
+              <div class="panel panel-info">
+                <div class="panel-body">
+                  <div class="form-group" style="margin-bottom:15px">
+                    <label class="control-label" for="input-paid-order-status">{{ entry_paid_order_status }}</label>
+                    <select name="payment_opencart_iban_paid_order_status_id" id="input-paid-order-status" class="form-control">
+                      {% for order_status in order_statuses %}
+                        {% if order_status.order_status_id == payment_opencart_iban_paid_order_status_id %}
+                          <option value="{{ order_status.order_status_id }}" selected="selected">{{ order_status.name }}</option>
+                        {% else %}
+                          <option value="{{ order_status.order_status_id }}">{{ order_status.name }}</option>
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                    <p class="help-block">{{ help_paid_order_status }}</p>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="control-label">Callback URL</label>
+                    <div class="input-group">
+                      <input type="text" value="{{ callback_url }}" class="form-control" readonly id="input-callback-url"/>
+                      <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" onclick="var el=document.getElementById('input-callback-url');el.select();document.execCommand('copy');"><i class="fa fa-copy"></i></button>
+                      </span>
+                    </div>
+                    <p class="help-block">{{ help_callback_url }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
             <div class="col-sm-10">
               <select name="payment_opencart_iban_status" id="input-status" class="form-control">
@@ -131,4 +179,9 @@
     </div>
   </div>
 </div>
+<script>
+$('#input-autoclient').on('change', function() {
+  $('#autoclient-settings').toggle($(this).val() === '1');
+});
+</script>
 {{ footer }}

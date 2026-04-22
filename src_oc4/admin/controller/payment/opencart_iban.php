@@ -158,6 +158,12 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			}
 		}
 
+		$data['payment_opencart_iban_autoclient'] = $this->config->get('payment_opencart_iban_autoclient');
+		$data['payment_opencart_iban_paid_order_status_id'] = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
+
+		// Generate callback URL for autoclient webhook
+		$data['callback_url'] = HTTPS_CATALOG . 'index.php?route=extension/opencart_iban/payment/opencart_iban.callback';
+
 		$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status');
 		$data['payment_opencart_iban_sort_order'] = $this->config->get('payment_opencart_iban_sort_order');
 

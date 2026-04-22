@@ -9,6 +9,9 @@ namespace Opencart\Catalog\Controller\Extension\OpencartIban\Payment;
 class OpencartIban extends \Opencart\System\Engine\Controller {
 	private const OPENDATABOT_ENDPOINT = 'https://iban.opendatabot.ua/api/invoice';
 	private const OPENDATABOT_INVOICE_URL_PREFIX = 'https://iban.opendatabot.ua/invoice/';
+	// Dev (Docker): uncomment lines below and comment out the ones above
+	// private const OPENDATABOT_ENDPOINT = 'http://host.docker.internal:8080/api/invoice';
+	// private const OPENDATABOT_INVOICE_URL_PREFIX = 'http://localhost:8080/invoice/';
 
 	/**
 	 * Index
@@ -144,6 +147,8 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			$x_client_key  = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
 			$x_client_name = trim((string)$this->config->get('payment_opencart_iban_x_client_name'));
 
+			$autoclient = (int)$this->config->get('payment_opencart_iban_autoclient');
+
 			$payload = [
 				'code'          => $code,
 				'iban'          => $iban,
@@ -152,6 +157,10 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 				'x-client-key'  => $x_client_key,
 				'x-client-name' => $x_client_name
 			];
+
+			if ($autoclient) {
+				$payload['redirectUrl'] = $this->url->link('checkout/success', 'language=' . $this->config->get('config_language'), true);
+			}
 
 			$invoice_id = $this->createInvoice($payload);
 
@@ -195,6 +204,96 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 	}
 
 	/**
+	 * Callback endpoint for autoclient webhook.
+	 *
+	 * Receives payment notifications from Opendatabot autoclient,
+	 * verifies HMAC-SHA256 signature and updates order status.
+	 *
+	 * @return void
+	 */
+	public function callback(): void {
+		$this->response->addHeader('Content-Type: application/json; charset=utf-8');
+
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			http_response_code(405);
+			$this->response->setOutput(json_encode(['error' => 'Method not allowed']));
+			return;
+		}
+
+		$raw_body = file_get_contents('php://input');
+
+		if ($raw_body === false || $raw_body === '') {
+			http_response_code(400);
+			$this->response->setOutput(json_encode(['error' => 'Empty body']));
+			return;
+		}
+
+		// Verify HMAC-SHA256 signature using x-client-key
+		$x_client_key = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
+
+		if ($x_client_key !== '') {
+			$signature = $_SERVER['HTTP_SIGNATURE'] ?? '';
+
+			if ($signature === '') {
+				http_response_code(401);
+				$this->response->setOutput(json_encode(['error' => 'Missing signature']));
+				return;
+			}
+
+			$expected = hash_hmac('sha256', $raw_body, $x_client_key);
+
+			if (!hash_equals($expected, $signature)) {
+				http_response_code(401);
+				$this->response->setOutput(json_encode(['error' => 'Invalid signature']));
+				return;
+			}
+		}
+
+		$data = json_decode($raw_body, true);
+
+		if (!is_array($data)) {
+			http_response_code(400);
+			$this->response->setOutput(json_encode(['error' => 'Invalid JSON']));
+			return;
+		}
+
+		$order_id = isset($data['invoiceNumber']) ? (int)$data['invoiceNumber'] : 0;
+
+		if (!$order_id) {
+			$this->log->write('Opendatabot IBAN callback: Missing or invalid invoiceNumber in payload');
+			http_response_code(200);
+			$this->response->setOutput(json_encode(['ok' => true, 'matched' => false]));
+			return;
+		}
+
+		$this->load->model('checkout/order');
+		$order_info = $this->model_checkout_order->getOrder($order_id);
+
+		if (!$order_info) {
+			$this->log->write('Opendatabot IBAN callback: Order not found (order_id=' . $order_id . ')');
+			http_response_code(200);
+			$this->response->setOutput(json_encode(['ok' => true, 'matched' => false]));
+			return;
+		}
+
+		// Update order status to "paid"
+		$paid_status_id = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
+
+		$this->load->language('extension/opencart_iban/payment/opencart_iban');
+
+		$this->model_checkout_order->addHistory(
+			$order_id,
+			$paid_status_id,
+			$this->language->get('text_callback_paid'),
+			true
+		);
+
+		$this->log->write('Opendatabot IBAN callback: Order #' . $order_id . ' marked as paid');
+
+		$this->response->setOutput(json_encode(['ok' => true, 'matched' => true, 'order_id' => $order_id]));
+	}
+
+	/**
 	 * Create invoice via Opendatabot API.
 	 *
 	 * Returns invoice ID on success, null otherwise.
@@ -226,7 +325,6 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		$http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		curl_close($ch);
-
 		if ($response === false) {
 			$this->log->write(
 				'Opendatabot IBAN: cURL error ' . (int)$curl_errno . ': ' . $curl_error .

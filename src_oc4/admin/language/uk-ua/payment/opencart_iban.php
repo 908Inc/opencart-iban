@@ -14,6 +14,8 @@ $_['entry_x_client_key'] = 'x-client-key';
 $_['entry_x_client_name'] = 'x-client-name';
 $_['entry_purpose']      = 'Призначення платежу';
 $_['entry_order_status'] = 'Статус замовлення';
+$_['entry_autoclient']   = 'Автоклієнт';
+$_['entry_paid_order_status'] = 'Статус замовлення (оплачено)';
 $_['entry_status']       = 'Статус';
 $_['entry_sort_order']   = 'Порядок сортування';
 
@@ -21,6 +23,9 @@ $_['entry_sort_order']   = 'Порядок сортування';
 $_['help_x_client_key']  = 'Ключ клієнта API Opendatabot (потрібен для створення рахунків).';
 $_['help_x_client_name'] = 'Ім’я клієнта API Opendatabot (наприклад public або назва вашого застосунку).';
 $_['help_purpose']       = 'Використовуйте плейсхолдер {order_id}. Якщо його немає — номер замовлення буде додано автоматично.';
+$_['help_autoclient']    = 'Увімкніть, якщо у вас налаштований Автоклієнт на iban.opendatabot.ua. Покупець потрапить на сторінку очікування оплати, а система автоматично зафіксує платіж через банківський полінг.';
+$_['help_paid_order_status'] = 'Статус замовлення після підтвердження оплати через callback автоклієнта.';
+$_['help_callback_url']  = 'Вкажіть цю адресу як Callback URL у налаштуваннях Автоклієнта на iban.opendatabot.ua.';
 
 // Error
 $_['error_permission']   = 'Попередження: У вас немає прав для зміни цього способу оплати!';

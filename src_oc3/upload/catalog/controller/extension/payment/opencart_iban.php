@@ -1,8 +1,10 @@
 <?php
 class ControllerExtensionPaymentOpencartIban extends Controller {
-	private const OPENDATABOT_ENDPOINT = 'https://iban.opendatabot.ua/api/invoice';
-	private const OPENDATABOT_INVOICE_URL_PREFIX = 'https://iban.opendatabot.ua/invoice/';
-
+	const OPENDATABOT_ENDPOINT = 'https://iban.opendatabot.ua/api/invoice';
+	const OPENDATABOT_INVOICE_URL_PREFIX = 'https://iban.opendatabot.ua/invoice/';
+	// Dev (Docker): uncomment lines below and comment out the ones above
+	// const OPENDATABOT_ENDPOINT = 'http://host.docker.internal:8080/api/invoice';
+	// const OPENDATABOT_INVOICE_URL_PREFIX = 'http://localhost:8080/invoice/';
 	public function index() {
 		$this->load->language('extension/payment/opencart_iban');
 
@@ -73,6 +75,8 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 				$purpose = $prefix . $separator . $order_id;
 			}
 
+			$autoclient = (int)$this->config->get('payment_opencart_iban_autoclient');
+
 			$payload = array(
 				'code' => $code,
 				'iban' => $iban,
@@ -81,6 +85,10 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 				'x-client-key' => $client_key,
 				'x-client-name' => $client_name
 			);
+
+			if ($autoclient) {
+				$payload['redirectUrl'] = $this->url->link('checkout/success', '', true);
+			}
 
 			$invoice_id = $this->createInvoice($payload, $order_id);
 
@@ -109,6 +117,87 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	public function callback() {
+		$this->response->addHeader('Content-Type: application/json; charset=utf-8');
+
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			http_response_code(405);
+			$this->response->setOutput(json_encode(array('error' => 'Method not allowed')));
+			return;
+		}
+
+		$raw_body = file_get_contents('php://input');
+
+		if ($raw_body === false || $raw_body === '') {
+			http_response_code(400);
+			$this->response->setOutput(json_encode(array('error' => 'Empty body')));
+			return;
+		}
+
+		// Verify HMAC-SHA256 signature using client_key
+		$client_key = trim((string)$this->config->get('payment_opencart_iban_client_key'));
+
+		if ($client_key !== '') {
+			$signature = isset($_SERVER['HTTP_SIGNATURE']) ? $_SERVER['HTTP_SIGNATURE'] : '';
+
+			if ($signature === '') {
+				http_response_code(401);
+				$this->response->setOutput(json_encode(array('error' => 'Missing signature')));
+				return;
+			}
+
+			$expected = hash_hmac('sha256', $raw_body, $client_key);
+
+			if (!hash_equals($expected, $signature)) {
+				http_response_code(401);
+				$this->response->setOutput(json_encode(array('error' => 'Invalid signature')));
+				return;
+			}
+		}
+
+		$data = json_decode($raw_body, true);
+
+		if (!is_array($data)) {
+			http_response_code(400);
+			$this->response->setOutput(json_encode(array('error' => 'Invalid JSON')));
+			return;
+		}
+
+		$this->log->write('Opendatabot IBAN callback: ' . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+		$order_id = isset($data['invoiceNumber']) ? (int)$data['invoiceNumber'] : 0;
+
+		if (!$order_id) {
+			$this->log->write('Opendatabot IBAN callback: Missing or invalid invoiceNumber in payload');
+			$this->response->setOutput(json_encode(array('ok' => true, 'matched' => false)));
+			return;
+		}
+
+		$this->load->model('checkout/order');
+		$order_info = $this->model_checkout_order->getOrder($order_id);
+
+		if (!$order_info) {
+			$this->log->write('Opendatabot IBAN callback: Order not found (order_id=' . $order_id . ')');
+			$this->response->setOutput(json_encode(array('ok' => true, 'matched' => false)));
+			return;
+		}
+
+		$paid_status_id = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
+
+		$this->load->language('extension/payment/opencart_iban');
+
+		$this->model_checkout_order->addOrderHistory(
+			$order_id,
+			$paid_status_id,
+			$this->language->get('text_callback_paid'),
+			true
+		);
+
+		$this->log->write('Opendatabot IBAN callback: Order #' . $order_id . ' marked as paid');
+
+		$this->response->setOutput(json_encode(array('ok' => true, 'matched' => true, 'order_id' => $order_id)));
 	}
 
 	private function createInvoice($payload, $order_id = 0) {

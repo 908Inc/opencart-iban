@@ -10,6 +10,7 @@ $_['text_redirecting']     = 'Перенаправляємо на сторінк
 $_['text_redirect_notice'] = 'Якщо перенаправлення не відбулося автоматично — натисніть кнопку нижче.';
 $_['text_purpose']         = 'Оплата за замовлення №%s';
 $_['text_payment_comment'] = 'Користувача перенаправлено на рахунок IBAN (Opendatabot).';
+$_['text_callback_paid']   = 'Оплату підтверджено через автоклієнт Opendatabot.';
 
 // Button
 $_['button_pay']           = '₴ Сплатити за IBAN';

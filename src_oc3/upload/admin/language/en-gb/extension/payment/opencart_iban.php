@@ -17,6 +17,11 @@ $_['help_client_name'] = 'Client name specified when obtaining the QR IBAN key (
 $_['entry_purpose'] = 'Payment purpose';
 $_['help_purpose'] = 'Use {order_id} placeholder (e.g. "Payment for order #{order_id}"). If omitted, order ID will be appended.';
 $_['entry_order_status'] = 'Order Status';
+$_['entry_autoclient'] = 'Autoclient';
+$_['help_autoclient'] = 'Enable if you have Autoclient configured on iban.opendatabot.ua. Redirects customer to the payment status page and automatically detects payment via bank polling.';
+$_['entry_paid_order_status'] = 'Paid Order Status';
+$_['help_paid_order_status'] = 'Order status set when payment is confirmed via autoclient callback.';
+$_['help_callback_url'] = 'Set this URL as Callback URL in your Autoclient settings on iban.opendatabot.ua.';
 $_['entry_status'] = 'Status';
 $_['entry_sort_order'] = 'Sort Order';
 
