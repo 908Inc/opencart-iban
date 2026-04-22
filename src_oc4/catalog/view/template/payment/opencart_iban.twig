@@ -6,7 +6,7 @@ $('#button-confirm').on('click', function() {
     var element = this;
 
     $.ajax({
-        url: '{{ confirm_url is defined and confirm_url ? confirm_url|e("js") : ("index.php?route=extension/opencart_iban/payment/opencart_iban.confirm&language=" ~ language)|e("js") }}',
+        url: '{{ confirm_url is defined and confirm_url ? confirm_url|e("js") : ("index.php?route=extension/opencart_iban/payment/opencart_iban|confirm&language=" ~ language)|e("js") }}',
         type: 'post',
         dataType: 'json',
         beforeSend: function() {

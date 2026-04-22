@@ -22,7 +22,7 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		$this->load->language('extension/opencart_iban/payment/opencart_iban');
 
 		$data['language'] = $this->config->get('config_language');
-		$data['confirm_url'] = $this->url->link('extension/opencart_iban/payment/opencart_iban.confirm', 'language=' . $this->config->get('config_language'), true);
+		$data['confirm_url'] = $this->url->link('extension/opencart_iban/payment/opencart_iban|confirm', 'language=' . $this->config->get('config_language'), true);
 		$data['text_request_failed'] = $this->language->get('text_request_failed');
 
 		return $this->load->view('extension/opencart_iban/payment/opencart_iban', $data);

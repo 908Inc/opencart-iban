@@ -7,6 +7,10 @@ $_['text_extension']     = 'Розширення';
 $_['text_success']       = 'Успішно: Ви змінили налаштування оплати через рахунок IBAN (Opendatabot)!';
 $_['text_edit']          = 'Редагування: Рахунок IBAN (Opendatabot)';
 
+// Tabs
+$_['tab_general']        = 'Основні';
+$_['tab_autoclient']     = 'Автоклієнт';
+
 // Entry
 $_['entry_iban']         = 'IBAN';
 $_['entry_code']         = 'РНОКПП / ЄДРПОУ';
@@ -16,6 +20,7 @@ $_['entry_purpose']      = 'Призначення платежу';
 $_['entry_order_status'] = 'Статус замовлення';
 $_['entry_autoclient']   = 'Автоклієнт';
 $_['entry_paid_order_status'] = 'Статус замовлення (оплачено)';
+$_['entry_callback_url'] = 'Callback URL';
 $_['entry_status']       = 'Статус';
 $_['entry_sort_order']   = 'Порядок сортування';
 

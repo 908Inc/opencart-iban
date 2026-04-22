@@ -7,6 +7,10 @@ $_['text_extension']     = 'Extensions';
 $_['text_success']       = 'Success: You have modified Opendatabot IBAN Invoice payment module!';
 $_['text_edit']          = 'Edit Opendatabot IBAN Invoice';
 
+// Tabs
+$_['tab_general']        = 'General';
+$_['tab_autoclient']     = 'Autoclient';
+
 // Entry
 $_['entry_iban']         = 'IBAN';
 $_['entry_code']         = 'Code (EDRPOU / Tax ID)';
@@ -16,6 +20,7 @@ $_['entry_purpose']      = 'Payment purpose';
 $_['entry_order_status'] = 'Order Status';
 $_['entry_autoclient']   = 'Autoclient';
 $_['entry_paid_order_status'] = 'Paid Order Status';
+$_['entry_callback_url'] = 'Callback URL';
 $_['entry_status']       = 'Status';
 $_['entry_sort_order']   = 'Sort Order';
 

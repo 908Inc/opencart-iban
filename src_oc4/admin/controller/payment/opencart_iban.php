@@ -9,7 +9,7 @@ namespace Opencart\Admin\Controller\Extension\OpencartIban\Payment;
 class OpencartIban extends \Opencart\System\Engine\Controller {
 	private const EVENT_CODE = 'opencart_iban';
 	private const EVENT_TRIGGER_FAILURE = 'catalog/view/checkout/failure/before';
-	private const EVENT_ACTION_FAILURE = 'extension/opencart_iban/event/opencart_iban.failureMessage';
+	private const EVENT_ACTION_FAILURE = 'extension/opencart_iban/event/opencart_iban|failureMessage';
 
 	/**
 	 * Install
@@ -19,6 +19,11 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 	 * @return void
 	 */
 	public function install(): void {
+		$this->load->model('user/user_group');
+
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/opencart_iban/payment/opencart_iban');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/opencart_iban/payment/opencart_iban');
+
 		$this->load->model('setting/event');
 
 		if (!method_exists($this->model_setting_event, 'addEvent')) {
@@ -104,7 +109,7 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('extension/opencart_iban/payment/opencart_iban', 'user_token=' . $this->session->data['user_token'])
 		];
 
-		$data['save'] = $this->url->link('extension/opencart_iban/payment/opencart_iban.save', 'user_token=' . $this->session->data['user_token']);
+		$data['save'] = $this->url->link('extension/opencart_iban/payment/opencart_iban|save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
 
 		$data['payment_opencart_iban_iban'] = (string)$this->config->get('payment_opencart_iban_iban');
@@ -162,7 +167,8 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		$data['payment_opencart_iban_paid_order_status_id'] = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
 
 		// Generate callback URL for autoclient webhook
-		$data['callback_url'] = HTTPS_CATALOG . 'index.php?route=extension/opencart_iban/payment/opencart_iban.callback';
+		$catalog_url = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : $this->config->get('config_catalog');
+		$data['callback_url'] = $catalog_url . 'index.php?route=extension/opencart_iban/payment/opencart_iban|callback';
 
 		$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status');
 		$data['payment_opencart_iban_sort_order'] = $this->config->get('payment_opencart_iban_sort_order');
