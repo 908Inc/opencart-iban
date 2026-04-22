@@ -7,6 +7,10 @@ $_['text_extension'] = 'Розширення';
 $_['text_success'] = 'Успішно: Ви змінили налаштування оплати IBAN рахунком!';
 $_['text_edit'] = 'Налаштування IBAN рахунку (Opendatabot)';
 
+// Tabs
+$_['tab_general'] = 'Основні';
+$_['tab_autoclient'] = 'Автоклієнт';
+
 // Entry
 $_['entry_iban'] = 'IBAN';
 $_['entry_code'] = 'РНОКПП/ЄДРПОУ';
@@ -21,6 +25,7 @@ $_['entry_autoclient'] = 'Автоклієнт';
 $_['help_autoclient'] = 'Увімкніть, якщо у вас налаштований Автоклієнт на iban.opendatabot.ua. Покупець потрапить на сторінку очікування оплати, а система автоматично зафіксує платіж через банківський полінг.';
 $_['entry_paid_order_status'] = 'Статус замовлення (оплачено)';
 $_['help_paid_order_status'] = 'Статус замовлення після підтвердження оплати через callback автоклієнта.';
+$_['entry_callback_url'] = 'Callback URL';
 $_['help_callback_url'] = 'Вкажіть цю адресу як Callback URL у налаштуваннях Автоклієнта на iban.opendatabot.ua.';
 $_['entry_status'] = 'Статус';
 $_['entry_sort_order'] = 'Порядок сортування';

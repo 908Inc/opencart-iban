@@ -7,6 +7,10 @@ $_['text_extension'] = 'Extensions';
 $_['text_success'] = 'Success: You have modified Opendatabot IBAN Invoice payment details!';
 $_['text_edit'] = 'Edit Opendatabot IBAN Invoice';
 
+// Tabs
+$_['tab_general'] = 'General';
+$_['tab_autoclient'] = 'Autoclient';
+
 // Entry
 $_['entry_iban'] = 'IBAN';
 $_['entry_code'] = 'ІПН або код компанії';
@@ -21,6 +25,7 @@ $_['entry_autoclient'] = 'Autoclient';
 $_['help_autoclient'] = 'Enable if you have Autoclient configured on iban.opendatabot.ua. Redirects customer to the payment status page and automatically detects payment via bank polling.';
 $_['entry_paid_order_status'] = 'Paid Order Status';
 $_['help_paid_order_status'] = 'Order status set when payment is confirmed via autoclient callback.';
+$_['entry_callback_url'] = 'Callback URL';
 $_['help_callback_url'] = 'Set this URL as Callback URL in your Autoclient settings on iban.opendatabot.ua.';
 $_['entry_status'] = 'Status';
 $_['entry_sort_order'] = 'Sort Order';
