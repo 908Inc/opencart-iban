@@ -15,7 +15,7 @@
 
 ### Що потрібно перед встановленням
 
-1. **Архів розширення** — файл `opencart_iban.ocmod.zip` (для OpenCart 4) або `opencart_iban_oc3.ocmod.zip` (для OpenCart 3). Якщо у вас вихідний код з репозиторію, архів можна зібрати скриптом (див. розділ «Збірка архіву» в кінці).
+1. **Архів розширення** — файл `iban_opencart-4.ocmod.zip` (для OpenCart 4), `iban_opencart-3.ocmod.zip` (для OpenCart 3) або `iban_opencart-2_3.ocmod.zip` (для OpenCart 2.3). Якщо у вас вихідний код з репозиторію, архів можна зібрати скриптом (див. розділ «Збірка архіву» в кінці).
 2. **Ключі API Opendatabot** — ключ клієнта (x-client-key) та ім’я клієнта (x-client-name). Їх можна отримати на [iban.opendatabot.ua](https://iban.opendatabot.ua/create-invoice).
 3. **IBAN та код компанії** — ваш український IBAN та ІПН/ЄДРПОУ (8 або 10 цифр).
 
@@ -25,7 +25,7 @@
 
 1. Увійдіть в **адмін-панель** магазину.
 2. Відкрийте **Розширення → Встановлювач** (Extensions → Installer).
-3. Натисніть **Завантажити** і виберіть файл **opencart_iban.ocmod.zip**.
+3. Натисніть **Завантажити** і виберіть файл **iban_opencart-4.ocmod.zip**.
 4. Після успішної установки відкрийте **Розширення → Розширення** (Extensions → Extensions).
 5. У полі **Тип** оберіть **Оплата** (Payments).
 6. Знайдіть у списку **Opendatabot IBAN Invoice** і натисніть **Встановити** (Install).
@@ -40,7 +40,7 @@
 
 1. Увійдіть в **адмін-панель** магазину.
 2. Відкрийте **Розширення → Встановлювач** (Extensions → Installer).
-3. Завантажте файл **opencart_iban_oc3.ocmod.zip**.
+3. Завантажте файл **iban_opencart-3.ocmod.zip**.
 4. Відкрийте **Розширення → Модифікації** (Extensions → Modifications) і натисніть **Оновити** (Refresh).
 5. Відкрийте **Розширення → Розширення**, тип — **Оплата** (Payments).
 6. Знайдіть **Opendatabot IBAN Invoice** → **Встановити** (Install).
@@ -119,7 +119,7 @@
 ./scripts/build-ocmod-zip-oc4.sh
 ```
 
-Готовий файл: `dist/opencart_iban.ocmod.zip`.
+Готовий файл: `iban_opencart-4.ocmod.zip` (у корені репозиторію).
 
 **OpenCart 3.x:**
 
@@ -127,7 +127,15 @@
 ./scripts/build-ocmod-zip-oc3.sh
 ```
 
-Готовий файл: `dist/opencart_iban_oc3.ocmod.zip`.
+Готовий файл: `iban_opencart-3.ocmod.zip` (у корені репозиторію).
+
+**OpenCart 2.3.x:**
+
+```bash
+./scripts/build-ocmod-zip-oc2_3.sh
+```
+
+Готовий файл: `iban_opencart-2_3.ocmod.zip` (у корені репозиторію).
 
 Далі встановлюйте архів так, як описано в розділах «Встановлення в OpenCart 4.x» / «Встановлення в OpenCart 3.x» вище.
 
@@ -135,11 +143,12 @@
 
 ## Структура репозиторію (для розробників)
 
-- `src_oc4/` — вихідний код для OpenCart 4.x
-- `src_oc3/` — вихідний код для OpenCart 3.x (структура `upload/`)
-- `scripts/` — скрипти збірки
-- `dist/` — зібрані `.ocmod.zip` (в git не потрапляють)
-- `dev_oc4/` та `dev_oc3/` — Docker-стенди для розробки
+- `src/oc4/` — код модуля для OpenCart 4.x (`admin/`, `catalog/`, `install.json`)
+- `src/oc3/` — код модуля для OpenCart 3.x (структура `upload/`)
+- `src/oc2_3/` — код модуля для OpenCart 2.3.x (структура `upload/`)
+- `dev/oc4/`, `dev/oc3/`, `dev/oc2_3/` — Docker-стенди для локальної розробки (ізольовані від `src/`)
+- `scripts/` — скрипти збірки архівів
+- `*.ocmod.zip` у корені — зібрані архіви (в git не потрапляють)
 
 ---
 
