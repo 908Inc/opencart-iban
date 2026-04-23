@@ -4,7 +4,6 @@
 /config.php
 admin/config.php
 
-/*.ocmod.zip
 dev/oc4/.env
 dev/oc3/.env
 dev/oc2_3/.env
