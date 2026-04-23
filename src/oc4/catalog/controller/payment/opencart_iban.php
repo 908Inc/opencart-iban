@@ -276,8 +276,16 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		// Update order status to "paid"
 		$paid_status_id = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
+
+		// Idempotency: Opendatabot autoclient polls the bank periodically and re-sends callbacks
+		// for the same invoice every cycle. Skip if the order is already in the paid status —
+		// otherwise we'd spam the history and re-notify the customer on every poll.
+		if ((int)$order_info['order_status_id'] === $paid_status_id) {
+			$this->log->write('Opendatabot IBAN callback: Order #' . $order_id . ' already paid — skipping');
+			$this->response->setOutput(json_encode(['ok' => true, 'matched' => true, 'order_id' => $order_id, 'skipped' => true]));
+			return;
+		}
 
 		$this->load->language('extension/opencart_iban/payment/opencart_iban');
 

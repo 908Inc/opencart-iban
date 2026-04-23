@@ -186,6 +186,13 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 		$paid_status_id = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
 
+		// Idempotency: autoclient re-sends callbacks every poll cycle. Skip if already paid.
+		if ((int)$order_info['order_status_id'] === $paid_status_id) {
+			$this->log->write('Opendatabot IBAN callback: Order #' . $order_id . ' already paid — skipping');
+			$this->response->setOutput(json_encode(array('ok' => true, 'matched' => true, 'order_id' => $order_id, 'skipped' => true)));
+			return;
+		}
+
 		$this->load->language('extension/payment/opencart_iban');
 
 		$this->model_checkout_order->addOrderHistory(
