@@ -101,12 +101,9 @@ if [ -f ".htaccess.txt" ] && [ ! -f ".htaccess" ]; then
   cp ".htaccess.txt" ".htaccess"
 fi
 
-# Ensure OpenCart writable directories are accessible for the web user.
-chown -R www-data:www-data \
-  "system/storage" \
-  "image" \
-  "config.php" \
-  "admin/config.php" \
-  || true
+# Ensure OpenCart directories are writable by Apache (www-data) — needed for the OCMOD
+# installer which writes into admin/ and catalog/ at runtime. For a dev stand it's simplest
+# to hand the entire webroot over to www-data.
+chown -R www-data:www-data "${WEB_ROOT}" || true
 
 exec "$@"
