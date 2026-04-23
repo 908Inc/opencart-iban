@@ -1,6 +1,6 @@
 <div class="buttons">
   <div class="pull-right">
-    <input type="button" value="{{ button_pay }}" id="button-confirm" class="btn btn-primary" data-loading-text="{{ text_loading }}" />
+    <input type="button" value="<?php echo $button_pay; ?>" id="button-confirm" class="btn btn-primary" data-loading-text="<?php echo $text_loading; ?>" />
   </div>
 </div>
 
@@ -26,7 +26,7 @@ $('#button-confirm').on('click', function() {
       }
     },
     error: function(xhr, ajaxOptions, thrownError) {
-      alert(thrownError + "\\r\\n" + xhr.statusText + "\\r\\n" + xhr.responseText);
+      alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
     }
   });
 });

@@ -170,7 +170,7 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 		$catalog_url = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : $this->config->get('config_catalog');
 		$data['callback_url'] = $catalog_url . 'index.php?route=extension/opencart_iban/payment/opencart_iban|callback';
 
-		$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status');
+		$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status') ?? 1;
 		$data['payment_opencart_iban_sort_order'] = $this->config->get('payment_opencart_iban_sort_order');
 
 		$data['header'] = $this->load->controller('common/header');

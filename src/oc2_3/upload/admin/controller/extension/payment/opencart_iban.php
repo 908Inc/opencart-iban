@@ -14,28 +14,44 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
-			$this->response->redirect($this->url->link('extension/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true));
+			$this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=payment', true));
 		}
 
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('text_home'),
-			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
+			'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], true)
 		);
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('text_extension'),
-			'href' => $this->url->link('extension/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true)
+			'href' => $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=payment', true)
 		);
 
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('extension/payment/opencart_iban', 'user_token=' . $this->session->data['user_token'], true)
+			'href' => $this->url->link('extension/payment/opencart_iban', 'token=' . $this->session->data['token'], true)
 		);
 
-		$data['action'] = $this->url->link('extension/payment/opencart_iban', 'user_token=' . $this->session->data['user_token'], true);
-		$data['cancel'] = $this->url->link('extension/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true);
+		// Language strings — OC 2.3 PHP templates need them passed explicitly.
+		$language_keys = array(
+			'heading_title', 'text_edit', 'text_enabled', 'text_disabled',
+			'button_save', 'button_cancel',
+			'tab_general', 'tab_autoclient',
+			'entry_iban', 'entry_code', 'entry_client_key', 'entry_client_name',
+			'entry_purpose', 'entry_order_status', 'entry_autoclient',
+			'entry_paid_order_status', 'entry_callback_url',
+			'entry_status', 'entry_sort_order',
+			'help_client_key', 'help_client_name', 'help_purpose',
+			'help_autoclient', 'help_paid_order_status', 'help_callback_url'
+		);
+		foreach ($language_keys as $key) {
+			$data[$key] = $this->language->get($key);
+		}
+
+		$data['action'] = $this->url->link('extension/payment/opencart_iban', 'token=' . $this->session->data['token'], true);
+		$data['cancel'] = $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=payment', true);
 
 		$data['error_warning'] = isset($this->error['warning']) ? $this->error['warning'] : '';
 		$data['error_iban'] = isset($this->error['iban']) ? $this->error['iban'] : '';
@@ -81,7 +97,7 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 		if (isset($this->request->post['opencart_iban_order_status_id'])) {
 			$data['opencart_iban_order_status_id'] = $this->request->post['opencart_iban_order_status_id'];
 		} else {
-			$data['opencart_iban_order_status_id'] = $this->config->get('opencart_iban_order_status_id');
+			$data['opencart_iban_order_status_id'] = $this->config->get('opencart_iban_order_status_id') ?: $this->config->get('config_order_status_id');
 		}
 
 		$this->load->model('localisation/order_status');
@@ -108,7 +124,7 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 		if (isset($this->request->post['opencart_iban_status'])) {
 			$data['opencart_iban_status'] = $this->request->post['opencart_iban_status'];
 		} else {
-			$data['opencart_iban_status'] = $this->config->get('opencart_iban_status');
+			$data['opencart_iban_status'] = $this->config->get('opencart_iban_status') ?? 1;
 		}
 
 		// Sort Order

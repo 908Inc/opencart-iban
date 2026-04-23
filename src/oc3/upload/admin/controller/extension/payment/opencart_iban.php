@@ -81,7 +81,7 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 		if (isset($this->request->post['payment_opencart_iban_order_status_id'])) {
 			$data['payment_opencart_iban_order_status_id'] = $this->request->post['payment_opencart_iban_order_status_id'];
 		} else {
-			$data['payment_opencart_iban_order_status_id'] = $this->config->get('payment_opencart_iban_order_status_id');
+			$data['payment_opencart_iban_order_status_id'] = $this->config->get('payment_opencart_iban_order_status_id') ?: $this->config->get('config_order_status_id');
 		}
 
 		$this->load->model('localisation/order_status');
@@ -108,7 +108,7 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 		if (isset($this->request->post['payment_opencart_iban_status'])) {
 			$data['payment_opencart_iban_status'] = $this->request->post['payment_opencart_iban_status'];
 		} else {
-			$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status');
+			$data['payment_opencart_iban_status'] = $this->config->get('payment_opencart_iban_status') ?? 1;
 		}
 
 		// Sort Order
