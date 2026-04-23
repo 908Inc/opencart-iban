@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Opendatabot IBAN Invoice Payment</name>
+    <code>opendatabot_iban</code>
+    <version>@VERSION@</version>
+    <author>Opendatabot</author>
+    <link>https://iban.opendatabot.ua/create-invoice</link>
+</modification>
