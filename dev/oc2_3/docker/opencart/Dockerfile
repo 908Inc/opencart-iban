@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfreetype6-dev \
     libicu-dev \
     libjpeg62-turbo-dev \
+    libmcrypt-dev \
     libonig-dev \
     libpng-dev \
     libzip-dev \
@@ -24,8 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       mbstring \
       mysqli \
       zip \
-    && pecl install "xdebug-${XDEBUG_VERSION}" \
-    && docker-php-ext-enable xdebug \
+    && pecl install "xdebug-${XDEBUG_VERSION}" mcrypt \
+    && docker-php-ext-enable xdebug mcrypt \
     && a2enmod rewrite \
     && apt-get purge -y --auto-remove $PHPIZE_DEPS \
     && rm -rf /var/lib/apt/lists/*
@@ -38,16 +39,18 @@ COPY xdebug.ini /usr/local/etc/php/conf.d/99-xdebug.ini
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 RUN git clone --depth 1 --branch "${OPENCART_VERSION}" https://github.com/opencart/opencart.git /usr/src/opencart \
-    && rm -rf /usr/src/opencart/.git
+    && rm -rf /usr/src/opencart/.git \
+    # OC 2.3's installer sets sql_mode='MYSQL40', which MySQL 5.7.22+ removed. Clear it.
+    && sed -i "s/SET @@session.sql_mode = 'MYSQL40'/SET @@session.sql_mode = ''/g" \
+       /usr/src/opencart/upload/install/cli_install.php \
+       /usr/src/opencart/upload/install/model/install/install.php
 
 WORKDIR /usr/src/opencart
 
-RUN if [ -f composer.json ]; then \
-      rm -rf ./upload/system/storage/vendor \
-      && COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader; \
-    else \
-      echo "No composer.json at repo root — skipping composer install (OC 2.3 has no composer dependencies)"; \
-    fi
+# OC 2.3's composer.json references Klarna/Cardinity SDKs that pull in Guzzle versions flagged
+# by security advisories, which modern Composer refuses to install. The IBAN extension and OC
+# core run fine without system/storage/vendor, so composer install is skipped here.
+# (If you need those bundled payment SDKs, pin Composer to 2.6 or set audit.block-insecure=false.)
 
 WORKDIR /
 
