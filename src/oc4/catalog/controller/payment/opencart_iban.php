@@ -1,0 +1,379 @@
+<?php
+namespace Opencart\Catalog\Controller\Extension\OpencartIban\Payment;
+
+/**
+ * Class OpencartIban
+ *
+ * @package Opencart\Catalog\Controller\Extension\OpencartIban\Payment
+ */
+class OpencartIban extends \Opencart\System\Engine\Controller {
+	private const OPENDATABOT_ENDPOINT = 'https://iban.opendatabot.ua/api/invoice';
+	private const OPENDATABOT_INVOICE_URL_PREFIX = 'https://iban.opendatabot.ua/invoice/';
+	// Dev (Docker): uncomment lines below and comment out the ones above
+	// private const OPENDATABOT_ENDPOINT = 'http://host.docker.internal:8080/api/invoice';
+	// private const OPENDATABOT_INVOICE_URL_PREFIX = 'http://localhost:8080/invoice/';
+
+	/**
+	 * Index
+	 *
+	 * @return string
+	 */
+	public function index(): string {
+		$this->load->language('extension/opencart_iban/payment/opencart_iban');
+
+		$data['language'] = $this->config->get('config_language');
+		$data['confirm_url'] = $this->url->link('extension/opencart_iban/payment/opencart_iban|confirm', 'language=' . $this->config->get('config_language'), true);
+		$data['text_request_failed'] = $this->language->get('text_request_failed');
+
+		return $this->load->view('extension/opencart_iban/payment/opencart_iban', $data);
+	}
+
+	/**
+	 * Confirm
+	 *
+	 * @return void
+	 */
+	public function confirm(): void {
+		ob_start();
+
+		$this->response->addHeader('Content-Type: application/json; charset=utf-8');
+
+		try {
+			$this->confirmAction();
+		} catch (\Throwable $e) {
+			ob_end_clean();
+			$this->load->language('extension/opencart_iban/payment/opencart_iban');
+			$this->response->setOutput(json_encode(['error' => $this->language->get('error_invoice_failed')]));
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function confirmAction(): void {
+		$this->load->language('extension/opencart_iban/payment/opencart_iban');
+
+		$json = [];
+		$order_id = null;
+		$order_info = null;
+
+		// Order
+		if (isset($this->session->data['order_id'])) {
+			$this->load->model('checkout/order');
+
+			$order_id = (int)$this->session->data['order_id'];
+			$order_info = $this->model_checkout_order->getOrder($order_id);
+
+			if (!$order_info) {
+				$json['redirect'] = $this->url->link('checkout/failure', 'language=' . $this->config->get('config_language'), true);
+
+				unset($this->session->data['order_id']);
+			}
+		} else {
+			$json['error'] = $this->language->get('error_order');
+		}
+
+		// If the order is missing, do not continue with other checks.
+		if (isset($json['redirect'])) {
+			if (ob_get_level()) {
+				ob_end_clean();
+			}
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+
+			return;
+		}
+
+		if (!isset($this->session->data['payment_method']) || $this->session->data['payment_method']['code'] != 'opencart_iban.opencart_iban') {
+			$json['error'] = $this->language->get('error_payment_method');
+		}
+
+		$iban = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_iban'));
+		$code = preg_replace('/\s+/', '', (string)$this->config->get('payment_opencart_iban_code'));
+		$x_client_key  = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
+		$x_client_name = trim((string)$this->config->get('payment_opencart_iban_x_client_name'));
+
+		if ($iban === '' || $code === '' || $x_client_key === '' || $x_client_name === '') {
+			$json['error'] = $this->language->get('error_config');
+		}
+		if ($x_client_key === '' || $x_client_name === '') {
+			$json['error'] = $this->language->get('error_config_keys');
+		}
+
+		if (!isset($json['redirect']) && isset($order_info) && strtoupper((string)$order_info['currency_code']) !== 'UAH') {
+			$json['error'] = $this->language->get('error_currency');
+		}
+
+		// On any error: delete the order so no order is created, keep cart, return error
+		if (isset($json['error']) && $order_id !== null) {
+			$this->load->model('checkout/order');
+			$this->model_checkout_order->deleteOrder($order_id);
+			unset($this->session->data['order_id']);
+			if (ob_get_level()) {
+				ob_end_clean();
+			}
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+
+			return;
+		}
+
+		if (!$json) {
+			$this->load->model('checkout/order');
+
+			$this->model_checkout_order->addHistory(
+				$order_id,
+				(int)($this->config->get('payment_opencart_iban_order_status_id') ?: $this->config->get('config_order_status_id')),
+				$this->language->get('text_payment_comment'),
+				false
+			);
+
+			$amount = number_format((float)$order_info['total'], 2, '.', '');
+
+			$language_id = (int)$this->config->get('config_language_id');
+			$purpose_template = trim((string)$this->config->get('payment_opencart_iban_purpose_' . $language_id));
+
+			if ($purpose_template === '') {
+				$purpose = sprintf($this->language->get('text_purpose'), $order_id);
+			} elseif (strpos($purpose_template, '{order_id}') !== false) {
+				$purpose = str_replace('{order_id}', (string)$order_id, $purpose_template);
+			} else {
+				$prefix = rtrim($purpose_template);
+				$separator = preg_match('/[\\pL\\pN]$/u', $prefix) ? ' ' : '';
+
+				$purpose = $prefix . $separator . $order_id;
+			}
+
+			$x_client_key  = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
+			$x_client_name = trim((string)$this->config->get('payment_opencart_iban_x_client_name'));
+
+			$autoclient = (int)$this->config->get('payment_opencart_iban_autoclient');
+
+			$payload = [
+				'code'          => $code,
+				'iban'          => $iban,
+				'amount'        => $amount,
+				'purpose'       => $purpose,
+				'x-client-key'  => $x_client_key,
+				'x-client-name' => $x_client_name
+			];
+
+			if ($autoclient) {
+				$payload['redirectUrl'] = $this->url->link('checkout/success', 'language=' . $this->config->get('config_language'), true);
+			}
+
+			$invoice_id = $this->createInvoice($payload);
+
+			if ($invoice_id) {
+				$json['redirect'] = self::OPENDATABOT_INVOICE_URL_PREFIX . $invoice_id;
+				// Send response first, then clear cart — so if output fails, cart is not cleared
+				if (ob_get_level()) {
+					ob_end_clean();
+				}
+				$this->response->addHeader('Content-Type: application/json');
+				$this->response->setOutput(json_encode($json));
+
+				$this->cart->clear();
+				unset($this->session->data['order_id']);
+				unset($this->session->data['payment_method']);
+				unset($this->session->data['payment_methods']);
+				unset($this->session->data['shipping_method']);
+				unset($this->session->data['shipping_methods']);
+				unset($this->session->data['comment']);
+				unset($this->session->data['agree']);
+				unset($this->session->data['coupon']);
+				unset($this->session->data['reward']);
+				unset($this->session->data['voucher']);
+				unset($this->session->data['vouchers']);
+				unset($this->session->data['totals']);
+
+				return;
+			}
+
+			// API failed: do not create order, keep cart
+			$this->model_checkout_order->deleteOrder($order_id);
+			unset($this->session->data['order_id']);
+			$json['error'] = $this->language->get('error_invoice_failed');
+		}
+
+		if (ob_get_level()) {
+			ob_end_clean();
+		}
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Callback endpoint for autoclient webhook.
+	 *
+	 * Receives payment notifications from Opendatabot autoclient,
+	 * verifies HMAC-SHA256 signature and updates order status.
+	 *
+	 * @return void
+	 */
+	public function callback(): void {
+		$this->response->addHeader('Content-Type: application/json; charset=utf-8');
+
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			http_response_code(405);
+			$this->response->setOutput(json_encode(['error' => 'Method not allowed']));
+			return;
+		}
+
+		$raw_body = file_get_contents('php://input');
+
+		if ($raw_body === false || $raw_body === '') {
+			http_response_code(400);
+			$this->response->setOutput(json_encode(['error' => 'Empty body']));
+			return;
+		}
+
+		// Verify HMAC-SHA256 signature using x-client-key
+		$x_client_key = trim((string)$this->config->get('payment_opencart_iban_x_client_key'));
+
+		if ($x_client_key !== '') {
+			$signature = $_SERVER['HTTP_SIGNATURE'] ?? '';
+
+			if ($signature === '') {
+				http_response_code(401);
+				$this->response->setOutput(json_encode(['error' => 'Missing signature']));
+				return;
+			}
+
+			$expected = hash_hmac('sha256', $raw_body, $x_client_key);
+
+			if (!hash_equals($expected, $signature)) {
+				http_response_code(401);
+				$this->response->setOutput(json_encode(['error' => 'Invalid signature']));
+				return;
+			}
+		}
+
+		$data = json_decode($raw_body, true);
+
+		if (!is_array($data)) {
+			http_response_code(400);
+			$this->response->setOutput(json_encode(['error' => 'Invalid JSON']));
+			return;
+		}
+
+		$order_id = isset($data['invoiceNumber']) ? (int)$data['invoiceNumber'] : 0;
+
+		if (!$order_id) {
+			$this->log->write('Opendatabot IBAN callback: Missing or invalid invoiceNumber in payload');
+			http_response_code(200);
+			$this->response->setOutput(json_encode(['ok' => true, 'matched' => false]));
+			return;
+		}
+
+		$this->load->model('checkout/order');
+		$order_info = $this->model_checkout_order->getOrder($order_id);
+
+		if (!$order_info) {
+			$this->log->write('Opendatabot IBAN callback: Order not found (order_id=' . $order_id . ')');
+			http_response_code(200);
+			$this->response->setOutput(json_encode(['ok' => true, 'matched' => false]));
+			return;
+		}
+
+		$paid_status_id = (int)($this->config->get('payment_opencart_iban_paid_order_status_id') ?: 5);
+
+		// Idempotency: Opendatabot autoclient polls the bank periodically and re-sends callbacks
+		// for the same invoice every cycle. Skip if the order is already in the paid status —
+		// otherwise we'd spam the history and re-notify the customer on every poll.
+		if ((int)$order_info['order_status_id'] === $paid_status_id) {
+			$this->log->write('Opendatabot IBAN callback: Order #' . $order_id . ' already paid — skipping');
+			$this->response->setOutput(json_encode(['ok' => true, 'matched' => true, 'order_id' => $order_id, 'skipped' => true]));
+			return;
+		}
+
+		$this->load->language('extension/opencart_iban/payment/opencart_iban');
+
+		$this->model_checkout_order->addHistory(
+			$order_id,
+			$paid_status_id,
+			$this->language->get('text_callback_paid'),
+			true
+		);
+
+		$this->log->write('Opendatabot IBAN callback: Order #' . $order_id . ' marked as paid');
+
+		$this->response->setOutput(json_encode(['ok' => true, 'matched' => true, 'order_id' => $order_id]));
+	}
+
+	/**
+	 * Create invoice via Opendatabot API.
+	 *
+	 * Returns invoice ID on success, null otherwise.
+	 *
+	 * @param array<string, string> $payload
+	 * @param int $order_id
+	 *
+	 * @return string|null
+	 */
+	private function createInvoice(array $payload, int $order_id = 0): ?string {
+		if (!function_exists('curl_init')) {
+			$this->log->write('Opendatabot IBAN: cURL extension is not available' . ($order_id ? ' (order_id=' . $order_id . ')' : ''));
+
+			return null;
+		}
+
+		$ch = curl_init(self::OPENDATABOT_ENDPOINT);
+
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload, '', '&'));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+		$response = curl_exec($ch);
+		$curl_errno = curl_errno($ch);
+		$curl_error = curl_error($ch);
+		$http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+		if ($response === false) {
+			$this->log->write(
+				'Opendatabot IBAN: cURL error ' . (int)$curl_errno . ': ' . $curl_error .
+				($order_id ? ' (order_id=' . $order_id . ')' : '')
+			);
+
+			return null;
+		}
+
+		if ($http_code < 200 || $http_code >= 300) {
+			$snippet = trim(preg_replace('/\s+/', ' ', (string)$response));
+
+			if (strlen($snippet) > 500) {
+				$snippet = substr($snippet, 0, 500) . '...';
+			}
+
+			$this->log->write(
+				'Opendatabot IBAN: HTTP ' . (int)$http_code . '; response: ' . $snippet .
+				($order_id ? ' (order_id=' . $order_id . ')' : '')
+			);
+
+			return null;
+		}
+
+		$decoded = json_decode($response, true);
+
+		if (!is_array($decoded) || empty($decoded['id'])) {
+			$snippet = trim(preg_replace('/\s+/', ' ', (string)$response));
+
+			if (strlen($snippet) > 500) {
+				$snippet = substr($snippet, 0, 500) . '...';
+			}
+
+			$this->log->write(
+				'Opendatabot IBAN: Unexpected API response; response: ' . $snippet .
+				($order_id ? ' (order_id=' . $order_id . ')' : '')
+			);
+
+			return null;
+		}
+
+		return (string)$decoded['id'];
+	}
+}

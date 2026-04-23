@@ -4,9 +4,10 @@
 /config.php
 admin/config.php
 
-dist/
-dev_oc4/.env
-dev_oc3/.env
+/*.ocmod.zip
+dev/oc4/.env
+dev/oc3/.env
+dev/oc2_3/.env
 
 !index.html
 
