@@ -8,7 +8,7 @@ $_['button_pay'] = '₴ Сплатити за IBAN';
 
 // Order
 $_['text_payment_comment'] = 'Клієнта перенаправлено для оплати IBAN рахунку (Opendatabot).';
-$_['text_purpose'] = 'Оплата за замовлення №%s';
+$_['text_purpose'] = 'Оплата за замовлення #%s';
 
 // Error
 $_['error_currency'] = 'Цей метод оплати доступний лише для гривні (UAH).';

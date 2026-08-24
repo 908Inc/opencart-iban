@@ -8,7 +8,7 @@ $_['text_payment_option']  = 'Оплата за IBAN без комісії';
 // Text
 $_['text_redirecting']     = 'Перенаправляємо на сторінку рахунку…';
 $_['text_redirect_notice'] = 'Якщо перенаправлення не відбулося автоматично — натисніть кнопку нижче.';
-$_['text_purpose']         = 'Оплата за замовлення №%s';
+$_['text_purpose']         = 'Оплата за замовлення #%s';
 $_['text_payment_comment'] = 'Користувача перенаправлено на рахунок IBAN (Opendatabot).';
 $_['text_callback_paid']   = 'Оплату підтверджено через автоклієнт Opendatabot.';
 

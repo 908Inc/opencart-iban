@@ -68,7 +68,7 @@ class ControllerExtensionPaymentOpencartIban extends Controller {
 
 			if ($value === '') {
 				if (!empty($language['code']) && $language['code'] === 'uk-ua') {
-					$value = 'Оплата за замовлення №{order_id}';
+					$value = 'Оплата за замовлення #{order_id}';
 				} else {
 					$value = 'Payment for order #{order_id}';
 				}

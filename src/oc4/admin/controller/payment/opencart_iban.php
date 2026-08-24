@@ -134,7 +134,7 @@ class OpencartIban extends \Opencart\System\Engine\Controller {
 			if ($value === '') {
 				// Reasonable defaults. Stores can customize per language in admin.
 				if (($language['code'] ?? '') === 'uk-ua') {
-					$value = 'Оплата за замовлення №{order_id}';
+					$value = 'Оплата за замовлення #{order_id}';
 				} else {
 					$value = 'Payment for order #{order_id}';
 				}
